@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Polish Chad Rankings & Community</title>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDKs (bez płatnego Storage) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -32,7 +32,6 @@
 
     .content { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
     
-    /* Community Styles */
     .auth-card, .post-create-card, .post-card { background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 14px; }
     .auth-card input, .post-create-card textarea, .post-create-card input, .comment-input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px; color: #fff; margin-bottom: 8px; font-size: 0.85rem; }
     .btn-action { width: 100%; background: var(--purple-gradient); border: none; border-radius: 8px; color: #fff; padding: 10px; font-weight: 700; cursor: pointer; }
@@ -40,10 +39,18 @@
     
     .post-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--subtext); margin-bottom: 8px; }
     .post-author { color: var(--purple-light); font-weight: 700; }
-    .post-text { font-size: 0.9rem; line-height: 1.4; margin-bottom: 12px; }
+    .post-text { font-size: 0.9rem; line-height: 1.4; margin-bottom: 8px; }
+    .post-img { width: 100%; border-radius: 8px; margin-top: 6px; margin-bottom: 8px; max-height: 300px; object-fit: cover; }
+    
+    .post-actions { display: flex; gap: 10px; font-size: 0.75rem; margin-bottom: 8px; }
+    .btn-link { color: var(--purple-light); cursor: pointer; background: none; border: none; font-size: 0.75rem; }
+    .btn-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 0.75rem; }
+
     .comments-section { border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 8px; margin-top: 8px; }
-    .comment-item { font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; margin-bottom: 4px; }
+    .comment-item { font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; margin-bottom: 4px; display: flex; flex-direction: column; }
+    .comment-header { display: flex; justify-content: space-between; }
     .comment-author { color: var(--purple-light); font-weight: 600; }
+    .file-input-label { display: block; font-size: 0.75rem; color: var(--subtext); margin-bottom: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -58,15 +65,12 @@
     </header>
 
     <main class="content">
-      <!-- WIDOK RANKINGU -->
       <div id="view-rankings">
         <p style="text-align: center; color: var(--subtext); font-size: 0.85rem;">Sekcja rankingowa działa bez zmian.</p>
       </div>
 
-      <!-- WIDOK COMMUNITY -->
       <div id="view-community" style="display: none;">
         
-        <!-- Sekcja logowania / rejestracji -->
         <div id="authContainer" class="auth-card">
           <h3 id="authTitle" style="margin-bottom: 10px; font-size: 0.95rem;">Logowanie</h3>
           <input type="text" id="authNick" placeholder="Twój Nick" style="display: none;">
@@ -76,7 +80,6 @@
           <div class="auth-toggle" onclick="toggleAuthMode()" id="authToggleText">Nie masz konta? Zarejestruj się</div>
         </div>
 
-        <!-- Profil zalogowanego -->
         <div id="userContainer" class="auth-card" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span>Zalogowano jako: <strong id="userDisplayName" style="color: var(--purple-light);">---</strong></span>
@@ -84,25 +87,27 @@
           </div>
         </div>
 
-        <!-- Formularz dodawania posta -->
         <div id="postFormContainer" class="post-create-card" style="display: none;">
           <textarea id="postContent" rows="3" placeholder="Napisz coś na grupie..."></textarea>
-          <button class="btn-action" onclick="createPost()">Opublikuj wpis</button>
+          <label class="file-input-label">🖼️ Dodaj zdjęcie: <input type="file" id="postImage" accept="image/*"></label>
+          <button class="btn-action" id="btnPostSubmit" onclick="createPost()">Opublikuj wpis</button>
         </div>
 
-        <!-- Lista postów -->
         <div id="postsFeed"></div>
       </div>
     </main>
   </div>
 
   <script>
+    const ADMIN_EMAIL = "kplatek.2020@gmail.com";
+    const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCJDcay4pyauLgGQLloTrf1kp2GjXoQmTA",
-      authDomain: "https://polish-chad-rankings.firebaseapp.com",
+      authDomain: "polish-chad-rankings.firebaseapp.com",
       databaseURL: "https://polish-chad-rankings-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "polish-chad-rankings",
-      storageBucket: "https://polish-chad-rankings.firebasestorage.app",
+      storageBucket: "polish-chad-rankings.appspot.com",
       messagingSenderId: "941798583866",
       appId: "1:941798583866:web:d79633db32004e07c74f03"
     };
@@ -114,7 +119,6 @@
     let isRegisterMode = false;
     let currentUser = null;
 
-    // Przełączanie zakładak
     function switchView(view) {
       document.getElementById('view-rankings').style.display = view === 'rankings' ? 'block' : 'none';
       document.getElementById('view-community').style.display = view === 'community' ? 'block' : 'none';
@@ -122,7 +126,6 @@
       document.getElementById('tab-comm').classList.toggle('active', view === 'community');
     }
 
-    // Obsługa przełączania trybu Auth
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
       document.getElementById('authTitle').innerText = isRegisterMode ? 'Rejestracja' : 'Logowanie';
@@ -131,7 +134,6 @@
       document.getElementById('authToggleText').innerText = isRegisterMode ? 'Masz już konto? Zaloguj się' : 'Nie masz konta? Zarejestruj się';
     }
 
-    // Logowanie i Rejestracja
     function handleAuth() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
@@ -142,9 +144,7 @@
       if (isRegisterMode) {
         if (!nick) return alert('Wpisz swój nick!');
         auth.createUserWithEmailAndPassword(email, password)
-          .then((cred) => {
-            return cred.user.updateProfile({ displayName: nick });
-          })
+          .then((cred) => cred.user.updateProfile({ displayName: nick }))
           .catch(err => alert('Błąd rejestracji: ' + err.message));
       } else {
         auth.signInWithEmailAndPassword(email, password)
@@ -152,62 +152,131 @@
       }
     }
 
-    function logout() {
-      auth.signOut();
-    }
+    function logout() { auth.signOut(); }
 
-    // Nasłuchiwanie stanu zalogowania
     auth.onAuthStateChanged((user) => {
       currentUser = user;
-      const authContainer = document.getElementById('authContainer');
-      const userContainer = document.getElementById('userContainer');
-      const postFormContainer = document.getElementById('postFormContainer');
-
+      document.getElementById('authContainer').style.display = user ? 'none' : 'block';
+      document.getElementById('userContainer').style.display = user ? 'block' : 'none';
+      document.getElementById('postFormContainer').style.display = user ? 'block' : 'none';
       if (user) {
-        authContainer.style.display = 'none';
-        userContainer.style.display = 'block';
-        postFormContainer.style.display = 'block';
-        document.getElementById('userDisplayName').innerText = user.displayName || user.email;
-      } else {
-        authContainer.style.display = 'block';
-        userContainer.style.display = 'none';
-        postFormContainer.style.display = 'none';
+        const adminBadge = user.email === ADMIN_EMAIL ? ' (ADMIN)' : '';
+        document.getElementById('userDisplayName').innerText = (user.displayName || user.email) + adminBadge;
       }
     });
 
-    // Tworzenie posta
-    function createPost() {
+    // Wszyty darmowy upload do ImgBB
+    async function uploadImage(file) {
+      if (!file) return null;
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        return data.data.url;
+      } else {
+        throw new Error("Błąd podczas przesyłania zdjęcia.");
+      }
+    }
+
+    async function createPost() {
       const text = document.getElementById('postContent').value;
-      if (!text.trim()) return;
+      const fileInput = document.getElementById('postImage');
+      const file = fileInput.files[0];
 
-      const newPostRef = db.ref('posts').push();
-      newPostRef.set({
-        author: currentUser.displayName || 'Anonim',
-        uid: currentUser.uid,
-        text: text,
-        timestamp: Date.now()
-      }).then(() => {
+      if (!text.trim() && !file) return alert('Napisz coś lub dodaj zdjęcie!');
+
+      const btn = document.getElementById('btnPostSubmit');
+      btn.innerText = 'Wysyłanie...';
+      btn.disabled = true;
+
+      try {
+        const imageUrl = await uploadImage(file);
+        await db.ref('posts').push({
+          author: currentUser.displayName || 'Anonim',
+          uid: currentUser.uid,
+          userEmail: currentUser.email,
+          text: text,
+          imageUrl: imageUrl || null,
+          timestamp: Date.now()
+        });
+
         document.getElementById('postContent').value = '';
-      });
+        fileInput.value = '';
+      } catch (err) {
+        alert('Błąd dodawania posta: ' + err.message);
+      } finally {
+        btn.innerText = 'Opublikuj wpis';
+        btn.disabled = false;
+      }
     }
 
-    // Dodawanie komentarza
-    function addComment(postId) {
-      if (!currentUser) return alert('Musisz być zalogowany, aby komentować!');
-      const input = document.getElementById('comment-input-' + postId);
+    async function addComment(postId) {
+      if (!currentUser) return alert('Musisz być zalogowany!');
+      const input = document.getElementById(`comment-input-${postId}`);
+      const fileInput = document.getElementById(`comment-img-${postId}`);
       const text = input.value;
-      if (!text.trim()) return;
+      const file = fileInput.files[0];
 
-      db.ref('posts/' + postId + '/comments').push({
-        author: currentUser.displayName || 'Anonim',
-        text: text,
-        timestamp: Date.now()
-      }).then(() => {
+      if (!text.trim() && !file) return;
+
+      try {
+        const imageUrl = await uploadImage(file);
+        await db.ref(`posts/${postId}/comments`).push({
+          author: currentUser.displayName || 'Anonim',
+          uid: currentUser.uid,
+          userEmail: currentUser.email,
+          text: text,
+          imageUrl: imageUrl || null,
+          timestamp: Date.now()
+        });
         input.value = '';
-      });
+        fileInput.value = '';
+      } catch (err) {
+        alert('Błąd dodawania komentarza: ' + err.message);
+      }
     }
 
-    // Nasłuchiwanie postów na żywo
+    function deletePost(postId) {
+      if (confirm('Czy na pewno chcesz usunąć ten post?')) {
+        db.ref(`posts/${postId}`).remove();
+      }
+    }
+
+    function deleteComment(postId, commentId) {
+      if (confirm('Usunąć komentarz?')) {
+        db.ref(`posts/${postId}/comments/${commentId}`).remove();
+      }
+    }
+
+    async function translateText(elementId, originalText) {
+      const el = document.getElementById(elementId);
+      if (el.getAttribute('data-translated') === 'true') {
+        el.innerText = originalText;
+        el.setAttribute('data-translated', 'false');
+        return;
+      }
+
+      el.innerText = 'Tłumaczenie...';
+      try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalText)}&langpair=Autodetect|pl`);
+        const data = await res.json();
+        if (data.responseData) {
+          el.innerText = data.responseData.translatedText;
+          el.setAttribute('data-translated', 'true');
+        }
+      } catch (e) {
+        el.innerText = originalText;
+        alert('Nie udało się przetłumaczyć.');
+      }
+    }
+
     db.ref('posts').on('value', (snapshot) => {
       const feed = document.getElementById('postsFeed');
       feed.innerHTML = '';
@@ -218,25 +287,47 @@
         return;
       }
 
-      // Sortowanie od najnowszych
       const postsArray = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
 
       postsArray.forEach(post => {
         const dateStr = new Date(post.timestamp).toLocaleDateString() + ' ' + new Date(post.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+        const isOwner = currentUser && currentUser.uid === post.uid;
         
+        const canDelete = isAdmin || isOwner;
+        const deleteBtnHTML = canDelete ? `<button class="btn-delete" onclick="deletePost('${post.id}')">🗑️ Usuń</button>` : '';
+
         let commentsHTML = '';
         if (post.comments) {
-          Object.values(post.comments).forEach(c => {
-            commentsHTML += `<div class="comment-item"><span class="comment-author">${c.author}:</span> ${c.text}</div>`;
+          Object.keys(post.comments).forEach(cId => {
+            const c = post.comments[cId];
+            const canDeleteComm = isAdmin || (currentUser && currentUser.uid === c.uid);
+            const delCommBtn = canDeleteComm ? `<span class="btn-delete" style="font-size:0.65rem;" onclick="deleteComment('${post.id}', '${cId}')">Usuń</span>` : '';
+            const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img">` : '';
+
+            commentsHTML += `
+              <div class="comment-item">
+                <div class="comment-header">
+                  <span class="comment-author">${c.author}</span>
+                  ${delCommBtn}
+                </div>
+                <div>${c.text}</div>
+                ${commImg}
+              </div>`;
           });
         }
 
         const commentInputHTML = currentUser ? `
-          <div style="display:flex; gap:6px; margin-top:8px;">
-            <input type="text" class="comment-input" id="comment-input-${post.id}" placeholder="Napisz komentarz..." style="margin:0;">
-            <button onclick="addComment('${post.id}')" style="background:var(--purple-main); border:none; color:#fff; border-radius:6px; padding:0 10px; cursor:pointer; font-weight:700;">></button>
+          <div style="margin-top:8px;">
+            <div style="display:flex; gap:6px;">
+              <input type="text" class="comment-input" id="comment-input-${post.id}" placeholder="Napisz komentarz..." style="margin:0;">
+              <button onclick="addComment('${post.id}')" style="background:var(--purple-main); border:none; color:#fff; border-radius:6px; padding:0 12px; cursor:pointer; font-weight:700;">></button>
+            </div>
+            <label class="file-input-label" style="margin-top:4px;">📷 Zdjęcie: <input type="file" id="comment-img-${post.id}" accept="image/*"></label>
           </div>
         ` : '';
+
+        const postImgHTML = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img">` : '';
 
         const card = document.createElement('div');
         card.className = 'post-card';
@@ -245,7 +336,12 @@
             <span class="post-author">${post.author}</span>
             <span>${dateStr}</span>
           </div>
-          <div class="post-text">${post.text}</div>
+          <div class="post-text" id="post-text-${post.id}">${post.text}</div>
+          ${postImgHTML}
+          <div class="post-actions">
+            <button class="btn-link" onclick="translateText('post-text-${post.id}', '${post.text.replace(/'/g, "\\'")}')">🌐 Tłumacz / Oryginał</button>
+            ${deleteBtnHTML}
+          </div>
           <div class="comments-section">
             ${commentsHTML}
             ${commentInputHTML}
