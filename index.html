@@ -229,6 +229,7 @@
     .poll-subtitle {
       font-size: 0.78rem;
       color: var(--subtext);
+      line-height: 1.3;
     }
 
     .poll-options {
@@ -251,15 +252,15 @@
       transition: all 0.2s ease;
     }
 
-    /* Pasemko / Wypełnienie procentowe (Progress Bar) */
+    /* Wypełnienie procentowe (Progress Bar) */
     .poll-bar {
       position: absolute;
       top: 0;
       left: 0;
       bottom: 0;
       width: 0%;
-      background: linear-gradient(90deg, rgba(168, 85, 247, 0.32) 0%, rgba(168, 85, 247, 0.18) 100%);
-      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(90deg, rgba(168, 85, 247, 0.35) 0%, rgba(168, 85, 247, 0.2) 100%);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 11px;
       z-index: 1;
       pointer-events: none;
@@ -451,7 +452,6 @@
       gap: 12px;
     }
 
-    /* MEDALE KOLEJNOŚCI (#1 Złoty, #2 Srebrny, #3 Miedziany) */
     .rank-box {
       width: 36px;
       height: 36px;
@@ -984,6 +984,7 @@
         btnVoted: "✅ Zagłosowano",
         pollTitle: "Kto powinien zająć miejsce #" + pollConfig.targetRank + "?",
         pollVotesSub: " oddanych głosów",
+        pollHiddenNotice: "🔒 Wyniki i procenty pojawią się po aktualizacji rankingu",
         pollBtnVote: "Zagłosuj",
         pollBtnVoted: "✅ Oddano głos w ankiecie",
         hofTitle: "👑 Sala Sław",
@@ -1005,6 +1006,7 @@
         btnVoted: "✅ Voted",
         pollTitle: "Who should be #" + pollConfig.targetRank + " Polish Ranked Chad?",
         pollVotesSub: " votes cast",
+        pollHiddenNotice: "🔒 Results & percentages will appear after ranking update",
         pollBtnVote: "Vote",
         pollBtnVoted: "✅ You have already voted on this poll",
         hofTitle: "👑 Hall of Fame",
@@ -1033,6 +1035,12 @@
       const m = String(nextSunday.getMonth() + 1).padStart(2, '0');
       const d = String(nextSunday.getDate()).padStart(2, '0');
       return "WEEK_" + y + "_" + m + "_" + d;
+    }
+
+    function isPollRevealed() {
+      const c1 = chadsData.find(c => c.id === pollConfig.candidate1Id);
+      const c2 = chadsData.find(c => c.id === pollConfig.candidate2Id);
+      return !!(c1 && c2 && !c1.locked && !c2.locked);
     }
 
     function renderRankings() {
@@ -1149,7 +1157,15 @@
       const v1 = currentVotesCache[pollConfig.candidate1Id] || 0;
       const v2 = currentVotesCache[pollConfig.candidate2Id] || 0;
       const total = v1 + v2;
-      document.getElementById("txt-poll-sub").innerText = total + i18n[currentLang].pollVotesSub;
+      const weekKey = getWeekIdentifier();
+      const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
+
+      const subElem = document.getElementById("txt-poll-sub");
+      if (hasVoted && !isPollRevealed()) {
+        subElem.innerText = total + i18n[currentLang].pollVotesSub + " • " + i18n[currentLang].pollHiddenNotice;
+      } else {
+        subElem.innerText = total + i18n[currentLang].pollVotesSub;
+      }
     }
 
     function updatePollUI() {
@@ -1177,21 +1193,29 @@
         pct2 = 100 - pct1;
       }
 
+      const revealed = isPollRevealed();
+
       opt1.classList.remove("selected", "voted", "disabled-option");
       opt2.classList.remove("selected", "voted", "disabled-option");
 
       if (hasVoted) {
-        // Pokazywanie statystyk i paska postępu po oddaniu głosu
-        res1.style.display = "flex";
-        res2.style.display = "flex";
+        if (revealed) {
+          res1.style.display = "flex";
+          res2.style.display = "flex";
 
-        document.getElementById("poll-pct-1").innerText = pct1 + "%";
-        document.getElementById("poll-cnt-1").innerText = "(" + v1 + ")";
-        document.getElementById("poll-pct-2").innerText = pct2 + "%";
-        document.getElementById("poll-cnt-2").innerText = "(" + v2 + ")";
+          document.getElementById("poll-pct-1").innerText = pct1 + "%";
+          document.getElementById("poll-cnt-1").innerText = "(" + v1 + ")";
+          document.getElementById("poll-pct-2").innerText = pct2 + "%";
+          document.getElementById("poll-cnt-2").innerText = "(" + v2 + ")";
 
-        bar1.style.width = pct1 + "%";
-        bar2.style.width = pct2 + "%";
+          bar1.style.width = pct1 + "%";
+          bar2.style.width = pct2 + "%";
+        } else {
+          res1.style.display = "none";
+          res2.style.display = "none";
+          bar1.style.width = "0%";
+          bar2.style.width = "0%";
+        }
 
         if (votedCandidate === pollConfig.candidate1Id) {
           opt1.classList.add("voted");
@@ -1208,7 +1232,6 @@
         btn.classList.add("voted");
         document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVoted;
       } else {
-        // Ukrywanie paska i wyników przed oddaniem głosu
         res1.style.display = "none";
         res2.style.display = "none";
         bar1.style.width = "0%";
@@ -1241,6 +1264,7 @@
           });
         }
 
+        updatePollVotesCount();
         updatePollUI();
       }
     }
@@ -1262,12 +1286,23 @@
       });
 
       renderRankings();
+      updatePollUI();
     }
 
     function triggerWeeklyReset() {
       const currentWeekId = getWeekIdentifier();
 
-      const newlyUnlocked = [pollConfig.candidate1Id, pollConfig.candidate2Id];
+      // Tutaj odblokowujemy kandydatów z ankiety oraz miejsca 11-15
+      const newlyUnlocked = [
+        pollConfig.candidate1Id, 
+        pollConfig.candidate2Id,
+        "chad_11", 
+        "chad_12", 
+        "chad_13", 
+        "chad_14", 
+        "chad_15"
+      ];
+
       chadsData.forEach(function(chad) {
         if (newlyUnlocked.includes(chad.id)) {
           chad.locked = false;
@@ -1475,6 +1510,7 @@
             }
           });
           renderRankings();
+          updatePollUI();
         });
 
         db.ref('votes').on('value', function(snapshot) {
