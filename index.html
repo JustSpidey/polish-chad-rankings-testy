@@ -23,7 +23,6 @@
       --purple-light: #c084fc;
       --purple-gradient: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
       
-      /* Złota kolorystyka dedykowana dla Hall of Fame */
       --gold-main: #eab308;
       --gold-light: #fde047;
       
@@ -200,99 +199,77 @@
       border-radius: 20px;
     }
 
-    /* Community Poll */
+    /* Wygląd Community Poll dopasowany do wzoru */
     .poll-card {
-      background: #100d1a;
-      border: 1px solid rgba(168, 85, 247, 0.35);
-      border-radius: 16px;
-      padding: 18px;
+      background: #0d0b14;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 20px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(168, 85, 247, 0.15);
-    }
-
-    .poll-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .poll-badge {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
+      gap: 8px;
+      font-size: 0.78rem;
       font-weight: 800;
       color: var(--purple-light);
       letter-spacing: 0.8px;
       text-transform: uppercase;
     }
 
-    .poll-total-votes {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--subtext);
-      background: rgba(255, 255, 255, 0.05);
-      padding: 3px 8px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
     .poll-title {
-      font-size: 1.05rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: #ffffff;
+      margin-top: 10px;
+      margin-bottom: 4px;
       line-height: 1.3;
+    }
+
+    .poll-total-votes {
+      font-size: 0.85rem;
+      color: var(--subtext);
+      margin-bottom: 16px;
     }
 
     .poll-options {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .poll-option {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 10px 14px;
+      border-radius: 16px;
+      padding: 12px 16px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
     .poll-option:hover {
-      background: rgba(168, 85, 247, 0.1);
-      border-color: rgba(168, 85, 247, 0.4);
+      background: rgba(168, 85, 247, 0.08);
+      border-color: rgba(168, 85, 247, 0.3);
     }
 
-    .poll-option.selected {
-      border-color: var(--purple-main);
-      background: rgba(168, 85, 247, 0.15);
-    }
-
+    .poll-option.selected,
     .poll-option.voted {
-      border: 2px solid var(--purple-main) !important;
-      background: rgba(168, 85, 247, 0.18) !important;
-      cursor: default !important;
-    }
-
-    .poll-option.winner {
-      border: 2px solid var(--purple-light) !important;
-      background: rgba(168, 85, 247, 0.25) !important;
-      box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
-      cursor: default !important;
+      border-color: var(--purple-main);
+      background: rgba(168, 85, 247, 0.12);
     }
 
     .poll-radio {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      border: 2px solid var(--subtext);
+      border: 2px solid rgba(255, 255, 255, 0.35);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -300,88 +277,75 @@
       transition: all 0.2s ease;
     }
 
-    .poll-option.selected .poll-radio {
+    .poll-option.selected .poll-radio,
+    .poll-option.voted .poll-radio {
       border-color: var(--purple-light);
     }
 
     .poll-radio-inner {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: var(--purple-light);
       display: none;
     }
 
-    .poll-option.selected .poll-radio-inner {
+    .poll-option.selected .poll-radio-inner,
+    .poll-option.voted .poll-radio-inner {
       display: block;
     }
 
-    .poll-option.voted .poll-radio {
-      border-color: var(--purple-main) !important;
-      background-color: var(--purple-main) !important;
-    }
-
-    .poll-option.voted .poll-radio::after {
-      content: "✓";
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 11px;
-    }
-
-    .poll-option.voted .poll-radio-inner, .poll-option.winner .poll-radio-inner {
-      display: none !important;
-    }
-
-    .poll-option.winner .poll-radio {
-      border-color: var(--purple-light) !important;
-      background-color: var(--purple-light) !important;
-    }
-
-    .poll-option.winner .poll-radio::after {
-      content: "🏆";
-      font-size: 11px;
-    }
-
     .poll-avatar {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       flex-shrink: 0;
       overflow: hidden;
     }
 
+    .poll-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
     .poll-name {
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: #ffffff;
     }
 
     .poll-vote-btn {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 14px;
+      border-radius: 14px;
       background: var(--purple-gradient);
       border: none;
       color: #ffffff;
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       cursor: pointer;
-      margin-top: 4px;
+      margin-top: 16px;
       box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .poll-vote-btn:disabled, .poll-vote-btn.voted {
-      background: rgba(255, 255, 255, 0.08) !important;
-      color: var(--subtext) !important;
+      background: #232030 !important;
+      color: #a09fae !important;
       cursor: not-allowed !important;
       box-shadow: none !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
     }
 
     /* Lista rankingowa */
@@ -407,14 +371,6 @@
       background: rgba(168, 85, 247, 0.1);
       border-color: var(--purple-main);
       box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
-    }
-
-    .card:hover .name, .card:active .name {
-      color: var(--purple-light);
-    }
-
-    .card:hover .arrow, .card:active .arrow {
-      color: var(--purple-light);
     }
 
     .card-left {
@@ -512,10 +468,9 @@
       font-size: 1.3rem;
       color: #4b5563;
       font-weight: bold;
-      transition: color 0.2s ease;
     }
 
-    /* SEKCJA HALL OF FAME */
+    /* Sekcja Hall of Fame */
     .hof-section {
       display: flex;
       flex-direction: column;
@@ -559,6 +514,9 @@
       height: 320px;
       overflow: hidden;
       background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .hof-img {
@@ -655,6 +613,7 @@
       justify-content: center;
       font-size: 2.2rem;
       border: 2px solid var(--purple-main);
+      overflow: hidden;
     }
 
     .modal-stats {
@@ -724,7 +683,7 @@
     <header>
       <div class="header-top">
         <div class="header-logo">
-          <img src="MORPH.jpg" alt="Logo">
+          <img src="MORPH.jpg" alt="Logo" onerror="this.onerror=null; this.parentElement.innerText='🗿';">
         </div>
         <h1>POLISH CHAD RANKINGS</h1>
         <div class="lang-switch">
@@ -749,14 +708,12 @@
 
       <!-- Community Poll -->
       <section class="poll-card">
-        <div class="poll-header-row">
-          <div class="poll-badge">
-            <span>📊</span>
-            <span id="txt-poll-badge">ANKIETA SPOŁECZNA</span>
-          </div>
-          <div class="poll-total-votes" id="txt-poll-total">Łącznie głosów: 0</div>
+        <div class="poll-badge">
+          <span>📊</span>
+          <span id="txt-poll-badge">ANKIETA SPOŁECZNA</span>
         </div>
         <h2 class="poll-title" id="txt-poll-title">Kto powinien zająć miejsce #1?</h2>
+        <div class="poll-total-votes" id="txt-poll-total">0 oddanych głosów</div>
 
         <div class="poll-options">
           <div class="poll-option" id="poll-opt-1" onclick="selectPollOption('chad_1')">
@@ -905,11 +862,11 @@
         stVotes: "Głosy",
         btnVote: "🔥 Daj Głos",
         btnVoted: "✅ Zagłosowano",
-        pollTitle: "Kto powinien zająć miejsce #" + pollConfig.targetRank + " Polish Ranked Chad?",
+        pollTitle: "Kto powinien zająć miejsce #" + pollConfig.targetRank + "?",
         pollBtnVote: "Zagłosuj",
-        pollBtnVoted: "Oddano głos w tej ankiecie",
+        pollBtnVoted: "✅ Zagłosowano w ankiecie",
         pollBtnEnded: "Ankieta zakończona",
-        pollTotalVotes: "Łącznie głosów: ",
+        pollTotalVotes: " oddanych głosów",
         hofTitle: "👑 Sala Sław",
         hofSub: "Legendy wycofane z aktywnego rankingu.",
         legendBadge: "Legenda",
@@ -927,11 +884,11 @@
         stVotes: "Votes",
         btnVote: "🔥 Upvote",
         btnVoted: "✅ Voted",
-        pollTitle: "Who should be #" + pollConfig.targetRank + " Polish Ranked Chad?",
+        pollTitle: "Who should take place #" + pollConfig.targetRank + "?",
         pollBtnVote: "Vote",
-        pollBtnVoted: "You have already voted on this poll",
+        pollBtnVoted: "✅ Voted in poll",
         pollBtnEnded: "Poll Ended",
-        pollTotalVotes: "Total votes: ",
+        pollTotalVotes: " votes cast",
         hofTitle: "👑 Hall of Fame",
         hofSub: "Legends who have been retired from the active rankings.",
         legendBadge: "Legend",
@@ -946,7 +903,6 @@
     let serverLastResetWeek = null;
     let currentVotesCache = {};
     let selectedPollCandidateId = null;
-    let pollIsEnded = false;
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -983,8 +939,8 @@
           : (currentLang === "pl" ? chad.titlePl : chad.titleEn);
 
         const avatarHTML = (!isLocked && chad.img) 
-          ? '<img src="' + chad.img + '" class="avatar" alt="Avatar">'
-          : '<div class="avatar">❓</div>';
+          ? '<img src="' + chad.img + '" class="avatar" alt="Avatar" onerror="this.onerror=null; this.outerHTML=\'<div class=\\\\'avatar\\\\'>🗿</div>\';">'
+          : '<div class="avatar">🗿</div>';
 
         const auraText = isLocked ? "🔒" : chad.aura;
         const auraClass = isLocked ? "aura-pill locked" : "aura-pill";
@@ -1004,7 +960,8 @@
           '</div>';
 
         container.appendChild(card);
-      });
+      })
+
     }
 
     function renderHallOfFame() {
@@ -1021,7 +978,7 @@
 
         card.innerHTML = 
           '<div class="hof-img-wrapper">' +
-            '<img src="' + item.img + '" class="hof-img" alt="' + item.name + '">' +
+            '<img src="' + item.img + '" class="hof-img" alt="' + item.name + '" onerror="this.onerror=null; this.style.display=\'none\'; this.parentElement.insertAdjacentHTML(\'afterbegin\', \'<span style=\\\'font-size:3rem;\\\'>🗿</span>\');">' +
             '<span class="legend-badge">' + i18n[currentLang].legendBadge + '</span>' +
           '</div>' +
           '<div class="hof-content">' +
@@ -1042,20 +999,19 @@
       const name2 = c2 ? c2.name : "Ten od Midasa";
 
       if (c1 && c1.img) {
-        document.getElementById("poll-avatar-1").innerHTML = '<img src="' + c1.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        document.getElementById("poll-avatar-1").innerHTML = '<img src="' + c1.img + '" onerror="this.onerror=null; this.parentElement.innerText=\'🗿\';" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
       }
       if (c2 && c2.img) {
-        document.getElementById("poll-avatar-2").innerHTML = '<img src="' + c2.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        document.getElementById("poll-avatar-2").innerHTML = '<img src="' + c2.img + '" onerror="this.onerror=null; this.parentElement.innerText=\'🗿\';" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
       }
 
       const v1 = currentVotesCache[pollConfig.candidate1Id] || 0;
       const v2 = currentVotesCache[pollConfig.candidate2Id] || 0;
       const total = v1 + v2;
 
-      // Obliczanie i aktualizacja łącznej liczby głosów w ankiecie
       const totalElem = document.getElementById("txt-poll-total");
       if (totalElem) {
-        totalElem.innerText = i18n[currentLang].pollTotalVotes + total;
+        totalElem.innerText = total + i18n[currentLang].pollTotalVotes;
       }
 
       const weekKey = getWeekIdentifier();
@@ -1066,32 +1022,13 @@
       const opt2 = document.getElementById("poll-opt-2");
       const btn = document.getElementById("btnPollVote");
 
-      opt1.classList.remove("selected", "voted", "winner");
-      opt2.classList.remove("selected", "voted", "winner");
+      opt1.classList.remove("selected", "voted");
+      opt2.classList.remove("selected", "voted");
 
-      if (pollIsEnded) {
-        const p1 = total > 0 ? Math.round((v1 / total) * 100) : 50;
-        const p2 = total > 0 ? (100 - p1) : 50;
+      document.getElementById("poll-name-1").innerText = name1;
+      document.getElementById("poll-name-2").innerText = name2;
 
-        document.getElementById("poll-name-1").innerText = name1 + " (" + p1 + "%)";
-        document.getElementById("poll-name-2").innerText = name2 + " (" + p2 + "%)";
-
-        if (v1 >= v2) {
-          opt1.classList.add("winner");
-        } else {
-          opt2.classList.add("winner");
-        }
-
-        btn.disabled = true;
-        btn.classList.add("voted");
-        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnEnded;
-      } else if (hasVoted) {
-        const p1 = total > 0 ? Math.round((v1 / total) * 100) : 0;
-        const p2 = total > 0 ? (100 - p1) : 0;
-
-        document.getElementById("poll-name-1").innerText = name1 + " (" + p1 + "%)";
-        document.getElementById("poll-name-2").innerText = name2 + " (" + p2 + "%)";
-
+      if (hasVoted) {
         if (savedChoice === pollConfig.candidate1Id) {
           opt1.classList.add("voted");
         } else if (savedChoice === pollConfig.candidate2Id) {
@@ -1102,9 +1039,6 @@
         btn.classList.add("voted");
         document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVoted;
       } else {
-        document.getElementById("poll-name-1").innerText = name1;
-        document.getElementById("poll-name-2").innerText = name2;
-
         if (selectedPollCandidateId === pollConfig.candidate1Id) {
           opt1.classList.add("selected");
         } else if (selectedPollCandidateId === pollConfig.candidate2Id) {
@@ -1118,7 +1052,6 @@
     }
 
     function selectPollOption(candidateId) {
-      if (pollIsEnded) return;
       const weekKey = getWeekIdentifier();
       const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
       if (hasVoted) return;
@@ -1128,7 +1061,7 @@
     }
 
     function castPollVote() {
-      if (pollIsEnded || !selectedPollCandidateId) return;
+      if (!selectedPollCandidateId) return;
 
       const weekKey = getWeekIdentifier();
       const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
@@ -1187,8 +1120,6 @@
       });
 
       applyPublishedOrder(newOrder);
-
-      pollIsEnded = true;
       updatePollUI();
 
       if (db) {
@@ -1265,9 +1196,9 @@
       const avatarContainer = document.getElementById("modalAvatarContainer");
 
       if (!isLocked && chad.img) {
-        avatarContainer.innerHTML = '<img src="' + chad.img + '" class="modal-avatar" alt="Chad">';
+        avatarContainer.innerHTML = '<img src="' + chad.img + '" class="modal-avatar" alt="Chad" onerror="this.onerror=null; this.parentElement.innerText=\'🗿\';">';
       } else {
-        avatarContainer.innerHTML = '<div class="modal-avatar">❓</div>';
+        avatarContainer.innerHTML = '<div class="modal-avatar">🗿</div>';
       }
 
       document.getElementById("modalStatRank").innerText = "#" + chad.rank;
