@@ -3,12 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="google-site-verification" content="-oGEEEyoPbsyOVH7EOF3pAKPJ49IxacUo1LY5g5sgoA" />
-  <meta name="google-site-verification" content="pm96BuydbJw4945mbLTlRTScgiGLVAlV4mWQkt5Y25Y" />
   <meta name="description" content="Cotygodniowy ranking najbardziej wpływowych chadów w polskiej społeczności. Głosuj na faworytów!">
-  <meta property="og:title" content="Polish Chad Rankings">
-  <meta property="og:description" content="Głosuj na najbardziej wpływowych chadów w polskiej społeczności!">
-  <meta property="og:image" content="https://polish-chad-rankings.netlify.app/MORPH.jpg">
   <title>Polish Chad Rankings</title>
 
   <!-- Biblioteki Firebase -->
@@ -208,7 +203,7 @@
       border-radius: 20px;
     }
 
-    /* Ankieta Społeczna */
+    /* Ankieta */
     .poll-card {
       background: #100d1a;
       border: 1px solid rgba(168, 85, 247, 0.35);
@@ -437,7 +432,7 @@
     .hof-role { font-size: 0.85rem; font-weight: 600; color: #eab308; }
     .hof-desc { font-size: 0.8rem; color: var(--subtext); margin-top: 6px; line-height: 1.4; }
 
-    /* SPOŁECZNOŚĆ / COMMUNITY */
+    /* Społeczność */
     .user-auth-bar {
       background: #100d1a; border: 1px solid rgba(168, 85, 247, 0.25);
       border-radius: 14px; padding: 12px 16px; display: flex;
@@ -450,6 +445,11 @@
       background: var(--purple-gradient); border: none; color: #fff;
       font-size: 0.78rem; font-weight: 800; padding: 6px 12px;
       border-radius: 8px; cursor: pointer;
+    }
+
+    .delete-btn-admin {
+      background: #ef4444; color: white; border: none; font-size: 0.7rem;
+      padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 8px;
     }
 
     .create-post-card {
@@ -518,7 +518,7 @@
 
     .comment-input:focus { border-color: var(--purple-main); }
 
-    /* Modal Profile / Auth */
+    /* Modale */
     .modal {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(6px);
@@ -658,7 +658,7 @@
       <div id="view-community" class="tab-view hidden">
         <div class="user-auth-bar">
           <span class="user-info-text" id="userAuthStatus">Niezalogowany</span>
-          <button class="auth-btn-small" id="btnAuthAction" onclick="openAuthModal()">Zaloguj / Zarejestruj</button>
+          <button class="auth-btn-small" id="btnAuthAction" onclick="handleAuthAction()">Zaloguj / Zarejestruj</button>
         </div>
 
         <div class="create-post-card">
@@ -730,12 +730,6 @@
       appId: "1:941798583866:web:d79633db32004e07c74f03"
     };
 
-    const AURA_VALUES = [
-      "99.9", "98.4", "96.5", "94.0", "92.1", 
-      "90.5", "88.2", "86.0", "84.7", "82.0", 
-      "80.0", "78.2", "76.5", "74.1", "72.0"
-    ];
-
     const pollConfig = {
       targetRank: 1,
       candidate1Id: "chad_1",
@@ -799,7 +793,15 @@
         showOriginalBtn: "↩️ Pokaż oryginał",
         translating: "Tłumaczenie...",
         writeComment: "Napisz komentarz...",
-        writePost: "Napisz coś na społeczności..."
+        writePost: "Napisz coś na społeczności...",
+        authTitle: "Konto Chad",
+        usernamePlaceholder: "Twój Nick / Pseudonim",
+        emailPlaceholder: "E-mail (opcjonalnie)",
+        passwordPlaceholder: "Hasło",
+        modalLoginBtn: "Zaloguj",
+        modalRegisterBtn: "Zarejestruj",
+        emptyFieldsAlert: "Podaj nazwę użytkownika oraz hasło!",
+        deleteBtn: "Usuń"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -833,7 +835,15 @@
         showOriginalBtn: "↩️ Show original",
         translating: "Translating...",
         writeComment: "Write a comment...",
-        writePost: "Write something to the community..."
+        writePost: "Write something to the community...",
+        authTitle: "Chad Account",
+        usernamePlaceholder: "Your Nick / Pseudonym",
+        emailPlaceholder: "E-mail (optional)",
+        passwordPlaceholder: "Password",
+        modalLoginBtn: "Log In",
+        modalRegisterBtn: "Register",
+        emptyFieldsAlert: "Please fill in username and password!",
+        deleteBtn: "Delete"
       }
     };
 
@@ -842,7 +852,6 @@
     let db = null;
     let auth = null;
     let currentUser = null;
-    let serverLastResetWeek = null;
     let currentVotesCache = {};
     let selectedPollCandidateId = null;
 
@@ -1059,13 +1068,16 @@
       }
     }
 
-    /* SYSTEM SPOŁECZNOŚCI & TŁUMACZENIA KOMENTARZY */
-    function openAuthModal() {
+    /* SYSTEM SPOŁECZNOŚCI, LOGOWANIA I ADMINA */
+    function handleAuthAction() {
       if (currentUser) {
+        // Wylogowanie
         if (auth) auth.signOut();
         currentUser = null;
+        localStorage.removeItem("chad_user");
         updateAuthUI();
       } else {
+        // Otwarcie okna logowania
         document.getElementById("authModal").style.display = "flex";
       }
     }
@@ -1075,9 +1087,27 @@
     }
 
     function handleLogin() {
-      const nick = document.getElementById("authUsername").value.trim() || "Chad";
-      currentUser = { name: nick };
+      const nick = document.getElementById("authUsername").value.trim();
+      const pass = document.getElementById("authPassword").value.trim();
+
+      if (!nick || !pass) {
+        alert(i18n[currentLang].emptyFieldsAlert);
+        return;
+      }
+
+      // Prosta weryfikacja konta Admina
+      const isAdmin = (nick.toLowerCase() === "admin" && pass === "admin123");
+
+      currentUser = { 
+        name: nick,
+        isAdmin: isAdmin
+      };
+
       localStorage.setItem("chad_user", JSON.stringify(currentUser));
+      document.getElementById("authUsername").value = "";
+      document.getElementById("authPassword").value = "";
+      document.getElementById("authEmail").value = "";
+
       updateAuthUI();
       closeAuthModal();
     }
@@ -1088,13 +1118,16 @@
 
     function updateAuthUI() {
       const local = localStorage.getItem("chad_user");
-      if (local) currentUser = JSON.parse(local);
+      if (local) {
+        try { currentUser = JSON.parse(local); } catch(e) { currentUser = null; }
+      }
 
       const status = document.getElementById("userAuthStatus");
       const btn = document.getElementById("btnAuthAction");
 
       if (currentUser) {
-        status.innerText = i18n[currentLang].loggedInAs + currentUser.name;
+        const adminTag = currentUser.isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
+        status.innerHTML = i18n[currentLang].loggedInAs + currentUser.name + adminTag;
         btn.innerText = i18n[currentLang].logoutBtn;
       } else {
         status.innerText = i18n[currentLang].notLoggedIn;
@@ -1118,6 +1151,18 @@
       input.value = "";
     }
 
+    function deletePost(postId) {
+      if (currentUser && currentUser.isAdmin && db) {
+        db.ref('posts/' + postId).remove();
+      }
+    }
+
+    function deleteComment(postId, commentId) {
+      if (currentUser && currentUser.isAdmin && db) {
+        db.ref('posts/' + postId + '/comments/' + commentId).remove();
+      }
+    }
+
     function addComment(postId) {
       const input = document.getElementById("commentInput_" + postId);
       const text = input.value.trim();
@@ -1134,7 +1179,6 @@
       input.value = "";
     }
 
-    // TŁUMACZENIE KOMENTARZA PRZY UŻYCIU API MYMEMORY
     async function translateComment(btn, text) {
       const parent = btn.parentElement;
       const translatedDiv = parent.querySelector('.comment-translated');
@@ -1181,14 +1225,24 @@
         const postDiv = document.createElement("div");
         postDiv.className = "post-item";
 
+        let deletePostBtn = "";
+        if (currentUser && currentUser.isAdmin) {
+          deletePostBtn = `<button class="delete-btn-admin" onclick="deletePost('${post.id}')">${i18n[currentLang].deleteBtn}</button>`;
+        }
+
         let commentsHTML = "";
         if (post.comments) {
           Object.keys(post.comments).forEach(cId => {
             const comment = post.comments[cId];
+            let deleteCommentBtn = "";
+            if (currentUser && currentUser.isAdmin) {
+              deleteCommentBtn = `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>`;
+            }
+
             commentsHTML += `
               <div class="comment-item">
                 <div class="comment-header">
-                  <span class="comment-author">${comment.author}</span>
+                  <span class="comment-author">${comment.author} ${deleteCommentBtn}</span>
                   <span class="comment-time">${new Date(comment.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                 </div>
                 <div class="comment-text">${comment.text}</div>
@@ -1201,7 +1255,7 @@
 
         postDiv.innerHTML = `
           <div class="post-header">
-            <span class="post-author">${post.author}</span>
+            <span class="post-author">${post.author} ${deletePostBtn}</span>
             <span class="post-time">${new Date(post.timestamp).toLocaleDateString()}</span>
           </div>
           <div class="post-body">${post.text}</div>
@@ -1223,6 +1277,7 @@
       document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
       document.getElementById("flag-en").classList.toggle("active", lang === "en");
 
+      // Tłumaczenia interfejsu
       document.getElementById("txt-hero").innerText = i18n[lang].hero;
       document.getElementById("txt-verified").innerText = i18n[lang].verified;
       document.getElementById("st-rank").innerText = i18n[lang].stRank;
@@ -1235,6 +1290,14 @@
       document.getElementById("txt-tab-community").innerText = i18n[lang].tabCommunity;
       document.getElementById("postInput").placeholder = i18n[lang].writePost;
       document.getElementById("txt-publish-btn").innerText = i18n[lang].publishBtn;
+
+      // Tłumaczenia modala logowania
+      document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
+      document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
+      document.getElementById("authEmail").placeholder = i18n[lang].emailPlaceholder;
+      document.getElementById("authPassword").placeholder = i18n[lang].passwordPlaceholder;
+      document.getElementById("txt-login-btn").innerText = i18n[lang].modalLoginBtn;
+      document.getElementById("txt-register-btn").innerText = i18n[lang].modalRegisterBtn;
 
       setupPollUI();
       renderRankings();
