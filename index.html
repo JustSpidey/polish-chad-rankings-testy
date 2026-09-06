@@ -527,6 +527,12 @@
     .post-body { font-size: 0.88rem; color: #fff; line-height: 1.4; word-break: break-word; }
     .post-img { width: 100%; border-radius: 8px; margin-top: 6px; margin-bottom: 6px; max-height: 320px; object-fit: cover; }
 
+    .translated-box {
+      font-size: 0.82rem; color: var(--purple-light); font-style: italic;
+      background: rgba(168, 85, 247, 0.1); padding: 6px 8px; border-radius: 8px; margin-top: 4px;
+      line-height: 1.35; display: none;
+    }
+
     .comments-section {
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       padding-top: 10px; margin-top: 4px; display: flex; flex-direction: column; gap: 8px;
@@ -543,16 +549,11 @@
     .comment-time { color: var(--subtext); }
     .comment-text { font-size: 0.82rem; color: #d1d5db; line-height: 1.3; }
 
-    .comment-translated {
-      font-size: 0.82rem; color: var(--purple-light); font-style: italic;
-      background: rgba(168, 85, 247, 0.1); padding: 4px 6px; border-radius: 6px; margin-top: 2px;
-    }
-
     .translate-btn {
       align-self: flex-start; background: none; border: none;
       color: var(--purple-light); font-size: 0.72rem; font-weight: 700;
       cursor: pointer; padding: 2px 0; display: inline-flex; align-items: center; gap: 4px;
-      opacity: 0.85; transition: opacity 0.2s;
+      opacity: 0.85; transition: opacity 0.2s; margin-top: 2px;
     }
 
     .translate-btn:hover { opacity: 1; text-decoration: underline; }
@@ -857,7 +858,7 @@
         publishBtn: "Opublikuj",
         commentBtn: "Komentuj",
         translateBtn: "🌐 Przetłumacz",
-        showOriginalBtn: "↩️ Pokaż oryginał",
+        showOriginalBtn: "↩️ Ukryj tłumaczenie",
         translating: "Tłumaczenie...",
         writeComment: "Napisz komentarz...",
         writePost: "Napisz coś na społeczności...",
@@ -870,7 +871,9 @@
         deleteBtn: "Usuń",
         lockOverlayText: "🔒 Zaloguj się, aby dodać wpis",
         addImage: "Dodaj zdjęcie",
-        uploading: "Wysyłanie..."
+        addImgComm: "Zdjęcie",
+        uploading: "Wysyłanie...",
+        noPosts: "Brak wpisów. Bądź pierwszy!"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -901,7 +904,7 @@
         publishBtn: "Post",
         commentBtn: "Comment",
         translateBtn: "🌐 Translate",
-        showOriginalBtn: "↩️ Show original",
+        showOriginalBtn: "↩️ Hide translation",
         translating: "Translating...",
         writeComment: "Write a comment...",
         writePost: "Write something to the community...",
@@ -914,7 +917,9 @@
         deleteBtn: "Delete",
         lockOverlayText: "🔒 Log in to create a post",
         addImage: "Add image",
-        uploading: "Uploading..."
+        addImgComm: "Image",
+        uploading: "Uploading...",
+        noPosts: "No posts yet. Be the first!"
       }
     };
 
@@ -923,6 +928,7 @@
     let currentUser = null;
     let currentVotesCache = {};
     let selectedPollCandidateId = null;
+    let postsDataCache = {};
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -1139,6 +1145,7 @@
     auth.onAuthStateChanged((user) => {
       currentUser = user;
       updateAuthUI();
+      renderPosts(); // Przebuduj widok feedu natychmiast przy zmianie zalogowanego konta
     });
 
     function updateAuthUI() {
@@ -1176,11 +1183,11 @@
       const email = document.getElementById("authEmail").value.trim();
       const pass = document.getElementById("authPassword").value.trim();
 
-      if (!email || !pass) return alert("Wypełnij e-mail i hasło!");
+      if (!email || !pass) return alert(currentLang === "pl" ? "Wypełnij e-mail i hasło!" : "Please fill in email and password!");
 
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => closeAuthModal())
-        .catch(err => alert("Błąd logowania: " + err.message));
+        .catch(err => alert((currentLang === "pl" ? "Błąd logowania: " : "Login error: ") + err.message));
     }
 
     function handleRegister() {
@@ -1188,13 +1195,13 @@
       const email = document.getElementById("authEmail").value.trim();
       const pass = document.getElementById("authPassword").value.trim();
 
-      if (!email || !pass) return alert("Wypełnij e-mail i hasło!");
-      if (!nick) return alert("Wpisz swój nick!");
+      if (!email || !pass) return alert(currentLang === "pl" ? "Wypełnij e-mail i hasło!" : "Please fill in email and password!");
+      if (!nick) return alert(currentLang === "pl" ? "Wpisz swój nick!" : "Please enter your username!");
 
       auth.createUserWithEmailAndPassword(email, pass)
         .then((cred) => cred.user.updateProfile({ displayName: nick }))
         .then(() => closeAuthModal())
-        .catch(err => alert("Błąd rejestracji: " + err.message));
+        .catch(err => alert((currentLang === "pl" ? "Błąd rejestracji: " : "Registration error: ") + err.message));
     }
 
     /* UPLOAD ZDJĘĆ IMGBB */
@@ -1223,7 +1230,7 @@
       }
     }
 
-    /* TWORZENIE IPISÓW & KOMENTARZY */
+    /* TWORZENIE WPISÓW & KOMENTARZY */
     async function createPost() {
       if (!currentUser) return openAuthModal();
 
@@ -1232,7 +1239,7 @@
       const text = textInput.value.trim();
       const file = fileInput.files[0];
 
-      if (!text && !file) return alert("Napisz coś lub dodaj zdjęcie!");
+      if (!text && !file) return alert(currentLang === "pl" ? "Napisz coś lub dodaj zdjęcie!" : "Write something or attach an image!");
 
       const btn = document.getElementById("txt-publish-btn");
       const origText = btn.innerText;
@@ -1254,9 +1261,9 @@
         fileInput.value = "";
         document.getElementById("postImageName").innerText = "";
       } catch (err) {
-        alert("Błąd dodawania posta: " + err.message);
+        alert("Błąd: " + err.message);
       } finally {
-        btn.innerText = origText;
+        btn.innerText = i18n[currentLang].publishBtn;
         btn.disabled = false;
       }
     }
@@ -1266,7 +1273,7 @@
 
       const input = document.getElementById(`commentInput_${postId}`);
       const fileInput = document.getElementById(`commentImg_${postId}`);
-      const text = input.value.trim();
+      const text = input ? input.value.trim() : "";
       const file = fileInput ? fileInput.files[0] : null;
 
       if (!text && !file) return;
@@ -1282,33 +1289,56 @@
           timestamp: Date.now()
         });
 
-        input.value = "";
+        if (input) input.value = "";
         if (fileInput) fileInput.value = "";
       } catch (err) {
-        alert("Błąd dodawania komentarza: " + err.message);
+        alert("Błąd: " + err.message);
       }
     }
 
+    /* BEZPIECZNE USUWANIE Z WERYFIKACJĄ W CZASIE RZECZYWISTYM */
     function deletePost(postId) {
-      if (confirm('Czy na pewno chcesz usunąć ten post?')) {
+      if (!currentUser) return;
+      const isAdmin = currentUser.email === ADMIN_EMAIL;
+      const post = postsDataCache[postId];
+      const isOwner = post && post.uid === currentUser.uid;
+
+      if (!isAdmin && !isOwner) {
+        alert(currentLang === "pl" ? "Brak uprawnień do usunięcia tego wpisu!" : "Unauthorized!");
+        renderPosts();
+        return;
+      }
+
+      if (confirm(currentLang === "pl" ? 'Czy na pewno chcesz usunąć ten post?' : 'Are you sure you want to delete this post?')) {
         db.ref(`posts/${postId}`).remove();
       }
     }
 
     function deleteComment(postId, commentId) {
-      if (confirm('Usunąć komentarz?')) {
+      if (!currentUser) return;
+      const isAdmin = currentUser.email === ADMIN_EMAIL;
+      const post = postsDataCache[postId];
+      const comment = (post && post.comments) ? post.comments[commentId] : null;
+      const isOwner = comment && comment.uid === currentUser.uid;
+
+      if (!isAdmin && !isOwner) {
+        alert(currentLang === "pl" ? "Brak uprawnień do usunięcia tego komentarza!" : "Unauthorized!");
+        renderPosts();
+        return;
+      }
+
+      if (confirm(currentLang === "pl" ? 'Usunąć komentarz?' : 'Delete comment?')) {
         db.ref(`posts/${postId}/comments/${commentId}`).remove();
       }
     }
 
-    async function translateComment(btn, text) {
-      const parent = btn.parentElement;
-      const translatedDiv = parent.querySelector('.comment-translated');
-      const textDiv = parent.querySelector('.comment-text');
+    /* UNIWERSALNA FUNKCJA TŁUMACZENIA TEKSTÓW (POSTÓW ORAZ KOMENTARZY) */
+    async function translateContent(btn, text, targetDivId) {
+      const targetDiv = document.getElementById(targetDivId);
+      if (!targetDiv) return;
 
       if (btn.dataset.translated === "true") {
-        textDiv.style.display = "block";
-        translatedDiv.style.display = "none";
+        targetDiv.style.display = "none";
         btn.dataset.translated = "false";
         btn.innerText = i18n[currentLang].translateBtn;
         return;
@@ -1319,31 +1349,32 @@
       try {
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${currentLang}`);
         const data = await res.json();
-        if (data && data.responseData) {
-          translatedDiv.innerText = "🌐 " + data.responseData.translatedText;
-          translatedDiv.style.display = "block";
-          textDiv.style.display = "none";
+        if (data && data.responseData && data.responseData.translatedText) {
+          targetDiv.innerText = "🌐 " + data.responseData.translatedText;
+          targetDiv.style.display = "block";
           btn.dataset.translated = "true";
           btn.innerText = i18n[currentLang].showOriginalBtn;
+        } else {
+          btn.innerText = i18n[currentLang].translateBtn;
         }
       } catch (e) {
-        btn.innerText = "Error";
+        btn.innerText = i18n[currentLang].translateBtn;
       }
     }
 
-    /* REALTIME DATABASE FEED LISTENER */
-    db.ref('posts').on('value', (snapshot) => {
+    /* RENDEROWANIE FEEDU SPOŁECZNOŚCI */
+    function renderPosts() {
       const container = document.getElementById("postsContainer");
       if (!container) return;
       container.innerHTML = "";
 
-      const data = snapshot.val();
-      if (!data) {
-        container.innerHTML = '<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak wpisów. Bądź pierwszy!</p>';
+      const keys = Object.keys(postsDataCache);
+      if (keys.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">${i18n[currentLang].noPosts}</p>`;
         return;
       }
 
-      const postsArray = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
+      const postsArray = keys.map(key => ({ id: key, ...postsDataCache[key] })).reverse();
 
       postsArray.forEach(post => {
         const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
@@ -1354,7 +1385,13 @@
           ? `<button class="delete-btn-admin" onclick="deletePost('${post.id}')">${i18n[currentLang].deleteBtn}</button>` 
           : '';
 
-        const postImgHTML = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img">` : '';
+        const postImgHTML = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img" alt="Post attachment">` : '';
+
+        const safePostText = post.text ? post.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
+        const postTranslateHTML = post.text 
+          ? `<div class="translated-box" id="postTrans_${post.id}"></div>
+             <button class="translate-btn" onclick="translateContent(this, \`${safePostText}\`, 'postTrans_${post.id}')">${i18n[currentLang].translateBtn}</button>` 
+          : '';
 
         let commentsHTML = '';
         if (post.comments) {
@@ -1364,7 +1401,8 @@
             const delCommBtn = canDeleteComm 
               ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
               : '';
-            const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img">` : '';
+            const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img" alt="Comment image">` : '';
+            const safeCommText = c.text ? c.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
 
             commentsHTML += `
               <div class="comment-item">
@@ -1374,8 +1412,8 @@
                 </div>
                 ${c.text ? `<div class="comment-text">${c.text}</div>` : ''}
                 ${commImg}
-                <div class="comment-translated" style="display:none;"></div>
-                ${c.text ? `<button class="translate-btn" onclick="translateComment(this, \`${c.text.replace(/`/g, '')}\`)">${i18n[currentLang].translateBtn}</button>` : ''}
+                <div class="translated-box" id="commTrans_${post.id}_${cId}"></div>
+                ${c.text ? `<button class="translate-btn" onclick="translateContent(this, \`${safeCommText}\`, 'commTrans_${post.id}_${cId}')">${i18n[currentLang].translateBtn}</button>` : ''}
               </div>
             `;
           });
@@ -1390,7 +1428,7 @@
                 <button class="auth-btn-small" onclick="addComment('${post.id}')">${i18n[currentLang].commentBtn}</button>
               </div>
               <label class="file-input-btn" style="align-self: flex-start; font-size: 0.7rem; padding: 4px 8px;">
-                📷 <span id="txt-add-img-comm">Zdjęcie</span>
+                📷 <span>${i18n[currentLang].addImgComm}</span>
                 <input type="file" id="commentImg_${post.id}" accept="image/*" style="display:none;" onchange="updateFileName(this, 'cImgName_${post.id}')">
               </label>
               <span id="cImgName_${post.id}" style="font-size: 0.7rem; color: var(--purple-light);"></span>
@@ -1407,11 +1445,18 @@
           </div>
           ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
           ${postImgHTML}
+          ${postTranslateHTML}
           ${commentInputHTML}
         `;
 
         container.appendChild(postDiv);
       });
+    }
+
+    /* REALTIME DATABASE FEED LISTENER */
+    db.ref('posts').on('value', (snapshot) => {
+      postsDataCache = snapshot.val() || {};
+      renderPosts();
     });
 
     db.ref('votes').on('value', function(snapshot) {
@@ -1453,6 +1498,7 @@
       renderRankings();
       renderHallOfFame();
       updateAuthUI();
+      renderPosts();
 
       if (activeChadId !== null) {
         const chad = chadsData.find(c => c.id === activeChadId);
