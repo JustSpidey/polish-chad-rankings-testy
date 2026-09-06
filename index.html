@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-site-verification" content="-oGEEEyoPbsyOVH7EOF3pAKPJ49IxacUo1LY5g5sgoA" />
+  <meta name="google-site-verification" content="pm96BuydbJw4945mbLTlRTScgiGLVAlV4mWQkt5Y25Y" />
   <meta name="description" content="Cotygodniowy ranking najbardziej wpływowych chadów w polskiej społeczności. Głosuj na faworytów!">
-  <title>Polish Chad Rankings & Community</title>
+  <meta property="og:title" content="Polish Chad Rankings">
+  <meta property="og:description" content="Głosuj na najbardziej wpływowych chadów w polskiej społeczności!">
+  <meta property="og:image" content="https://polish-chad-rankings.netlify.app/MORPH.jpg">
+  <title>Polish Chad Rankings</title>
 
   <!-- Biblioteki Firebase SDK (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -204,50 +209,7 @@
       border-radius: 20px;
     }
 
-    /* --- STYLE ZAKŁADKI NEWS & BANNERÓW --- */
-    .tiktok-banner {
-      background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      text-decoration: none;
-      color: var(--text);
-      transition: all 0.2s ease;
-    }
-
-    .tiktok-banner:hover {
-      border-color: var(--purple-main);
-      box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
-    }
-
-    .tiktok-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .tiktok-icon {
-      width: 24px;
-      height: 24px;
-      fill: #fff;
-    }
-
-    .tiktok-text .title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #fff;
-    }
-
-    .tiktok-text .subtitle {
-      font-size: 0.75rem;
-      color: var(--subtext);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
+    /* --- STYLE WIDGETU BREAKING NEWS --- */
     .breaking-news-card {
       background: linear-gradient(180deg, rgba(45, 12, 24, 0.6) 0%, rgba(18, 17, 26, 0.95) 100%);
       border: 1px solid rgba(255, 42, 75, 0.4);
@@ -333,7 +295,7 @@
       gap: 8px;
     }
 
-    /* Ankieta */
+    /* Bitwa 1v1 / Community Poll */
     .poll-card {
       background: #100d1a;
       border: 1px solid rgba(168, 85, 247, 0.35);
@@ -437,7 +399,10 @@
       border: 2px solid var(--subtext);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      transition: all 0.2s ease;
     }
+
+    .poll-option.selected .poll-radio { border-color: var(--purple-light); }
 
     .poll-radio-inner {
       width: 8px; height: 8px;
@@ -456,22 +421,30 @@
       font-size: 1.1rem; flex-shrink: 0;
     }
 
-    .poll-name { font-weight: 700; font-size: 0.9rem; color: #ffffff; }
+    .poll-name { font-weight: 700; font-size: 0.9rem; color: #ffffff; transition: color 0.2s ease; }
 
     .poll-option.voted {
       border: 1.5px solid var(--purple-light) !important;
       background: rgba(168, 85, 247, 0.12) !important;
       box-shadow: 0 0 14px rgba(168, 85, 247, 0.2);
+      cursor: default !important;
     }
+
+    .poll-option.voted .poll-name { color: var(--purple-light); font-weight: 800; }
 
     .poll-option.voted .poll-radio {
       border-color: var(--purple-light) !important;
       background-color: var(--purple-main) !important;
+      display: flex !important; align-items: center; justify-content: center;
     }
 
     .poll-option.voted .poll-radio::after {
       content: "✓"; color: #ffffff; font-weight: 900; font-size: 11px;
     }
+
+    .poll-option.voted .poll-radio-inner { display: none; }
+
+    .poll-option.disabled-option { opacity: 0.6; cursor: default !important; pointer-events: none; }
 
     .poll-vote-btn {
       width: 100%; padding: 12px; border-radius: 12px;
@@ -479,15 +452,16 @@
       color: #ffffff; font-weight: 800; font-size: 0.9rem;
       cursor: pointer; margin-top: 4px;
       box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+      transition: all 0.2s ease;
     }
 
-    .poll-vote-btn:disabled {
+    .poll-vote-btn:disabled, .poll-vote-btn.voted {
       background: rgba(255, 255, 255, 0.08) !important;
       color: var(--subtext) !important; cursor: not-allowed !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important; box-shadow: none !important;
     }
 
-    /* Rankingi */
+    /* Lista rankingowa */
     .rankings-list { display: flex; flex-direction: column; gap: 10px; }
 
     .card {
@@ -502,6 +476,9 @@
       box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
     }
 
+    .card:hover .name, .card:active .name { color: var(--purple-light); }
+    .card:hover .arrow, .card:active .arrow { color: var(--purple-light); }
+
     .card-left { display: flex; align-items: center; gap: 12px; }
 
     .rank-box {
@@ -511,9 +488,9 @@
       background: rgba(255, 255, 255, 0.1); flex-shrink: 0;
     }
 
-    .rank-1 { background: linear-gradient(180deg, #facc15 0%, #ca8a04 100%); color: #000; }
-    .rank-2 { background: linear-gradient(180deg, #f1f5f9 0%, #94a3b8 100%); color: #000; }
-    .rank-3 { background: linear-gradient(180deg, #d97706 0%, #78350f 100%); color: #fff; }
+    .rank-1 { background: linear-gradient(180deg, #facc15 0%, #ca8a04 100%); color: #000; box-shadow: 0 2px 10px rgba(250, 204, 21, 0.3); }
+    .rank-2 { background: linear-gradient(180deg, #f1f5f9 0%, #94a3b8 100%); color: #000; box-shadow: 0 2px 10px rgba(241, 245, 249, 0.25); }
+    .rank-3 { background: linear-gradient(180deg, #d97706 0%, #78350f 100%); color: #fff; box-shadow: 0 2px 10px rgba(217, 119, 6, 0.3); }
 
     .avatar {
       width: 44px; height: 44px; border-radius: 10px;
@@ -523,7 +500,7 @@
     }
 
     .info { display: flex; flex-direction: column; }
-    .name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .name { font-size: 0.95rem; font-weight: 700; color: var(--text); transition: color 0.2s ease; }
     .subtext { font-size: 0.75rem; color: var(--subtext); margin-top: 2px; }
 
     .card-right { display: flex; align-items: center; gap: 8px; }
@@ -535,7 +512,7 @@
     }
 
     .aura-pill.locked { background: rgba(255, 255, 255, 0.08); color: var(--subtext); border: none; }
-    .arrow { font-size: 1.3rem; color: #4b5563; font-weight: bold; }
+    .arrow { font-size: 1.3rem; color: #4b5563; font-weight: bold; transition: color 0.2s ease; }
 
     /* Hall of Fame */
     .hof-section { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
@@ -549,7 +526,7 @@
       box-shadow: 0 4px 20px rgba(202, 138, 4, 0.15);
     }
 
-    .hof-img-wrapper { position: relative; width: 100%; height: 320px; overflow: hidden; background: rgba(255,255,255,0.05); }
+    .hof-img-wrapper { position: relative; width: 100%; height: 320px; overflow: hidden; background: rgba(255, 255, 255, 0.05); }
     .hof-img { width: 100%; height: 100%; object-fit: cover; }
     .legend-badge {
       position: absolute; top: 12px; right: 12px; background: rgba(202, 138, 4, 0.3);
@@ -562,7 +539,7 @@
     .hof-role { font-size: 0.85rem; font-weight: 600; color: #eab308; }
     .hof-desc { font-size: 0.8rem; color: var(--subtext); margin-top: 6px; line-height: 1.4; }
 
-    /* Społeczność */
+    /* --- SPOŁECZNOŚĆ & REJESTRACJA --- */
     .user-auth-bar {
       background: #100d1a; border: 1px solid rgba(168, 85, 247, 0.25);
       border-radius: 14px; padding: 12px 16px; display: flex;
@@ -584,7 +561,6 @@
       padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 8px;
     }
 
-    /* Okienko dodawania wpisów z przyciemnianą kłódką */
     .create-post-card {
       position: relative;
       background: var(--card-bg); border: 1px solid rgba(168, 85, 247, 0.2);
@@ -823,23 +799,25 @@
           </button>
         </section>
 
-        <!-- WIDGET BREAKING NEWS (Pod Ankietą Społeczną) -->
+        <!-- WIDGET BREAKING NEWS -->
         <section class="breaking-news-card">
           <div class="breaking-header">
-            <span>🚨</span> BREAKING NEWS <span>🚨</span>
+            <span>🚨</span> <span id="txt-breaking-header">BREAKING NEWS</span> <span>🚨</span>
           </div>
-          <h2 class="breaking-title">Hexumlite X Clav COLD APPROACH?</h2>
+          <h2 class="breaking-title" id="txt-breaking-title">Hexumlite X Clav COLD APPROACH?</h2>
           <div class="news-media">
             <img src="https://via.placeholder.com/400x220/22182b/ffffff?text=Cold+Approach+Video" alt="News Image">
-            <div class="media-overlay-text">"breaking all the rules of cold approach" ❤️😭</div>
+            <div class="media-overlay-text" id="txt-breaking-overlay">"breaking all the rules of cold approach" ❤️😭</div>
           </div>
-          <p class="news-description">
-            After meeting up, the 2 CHADS IMMEDIATELY get to WORK as they go around the NEIGHBOURHOOD in search for STACYS to COLD APPROACH!! Their technique and methods were OUTSTANDING and REVOLUTIONARY! Should they go up in the rankings?
+          <p class="news-description" id="txt-breaking-desc">
+            Po spotkaniu 2 CHADÓW OD RAZU bierze się do ROBOTY, krążąc po SĄSIEDZTWIE w poszukiwaniu STACY do COLD APPROACH!! Ich technika i metody były WYBITNE i REWOLUCYJNE! Czy powinni awansować w rankingu?
           </p>
         </section>
 
+        <!-- Główna lista rankingowa -->
         <section class="rankings-list" id="rankings"></section>
 
+        <!-- Sekcja Hall of Fame -->
         <section class="hof-section">
           <div class="hof-header">
             <h2 class="hof-title" id="txt-hof-title">👑 Sala Sław</h2>
@@ -851,38 +829,23 @@
 
       <!-- WIDOK NEWS -->
       <div id="view-news" class="tab-view hidden">
-        <!-- BANNER TIKTOK -->
-        <a href="#" class="tiktok-banner">
-          <div class="tiktok-info">
-            <svg class="tiktok-icon" viewBox="0 0 24 24">
-              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .56.04.83.1v-3.6a6.35 6.35 0 0 0-.83-.05A6.34 6.34 0 0 0 3 15.57 6.34 6.34 0 0 0 9.34 21.9a6.34 6.34 0 0 0 6.34-6.34V8.8a8.28 8.28 0 0 0 4.83 1.55V6.76a4.85 4.85 0 0 1-.92-.07z"/>
-            </svg>
-            <div class="tiktok-text">
-              <div class="title">Check out MOG NEWS on Tiktok</div>
-              <div class="subtitle">OUR official news channel</div>
-            </div>
-          </div>
-          <span>↗</span>
-        </a>
-
         <!-- WIDGET BREAKING NEWS -->
         <div class="breaking-news-card">
           <div class="breaking-header">
-            <span>🚨</span> BREAKING NEWS <span>🚨</span>
+            <span>🚨</span> <span id="txt-breaking-header-news">BREAKING NEWS</span> <span>🚨</span>
           </div>
-          <h2 class="breaking-title">Hexumlite X Clav COLD APPROACH?</h2>
+          <h2 class="breaking-title" id="txt-breaking-title-news">Hexumlite X Clav COLD APPROACH?</h2>
           <div class="news-media">
             <img src="https://via.placeholder.com/400x220/22182b/ffffff?text=Cold+Approach+Video" alt="News Image">
-            <div class="media-overlay-text">"breaking all the rules of cold approach" ❤️😭</div>
+            <div class="media-overlay-text" id="txt-breaking-overlay-news">"breaking all the rules of cold approach" ❤️😭</div>
           </div>
-          <p class="news-description">
-            After meeting up, the 2 CHADS IMMEDIATELY get to WORK as they go around the NEIGHBOURHOOD in search for STACYS to COLD APPROACH!! Their technique and methods were OUTSTANDING and REVOLUTIONARY! Should they go up in the rankings?
+          <p class="news-description" id="txt-breaking-desc-news">
+            Po spotkaniu 2 CHADÓW OD RAZU bierze się do ROBOTY, krążąc po SĄSIEDZTWIE w poszukiwaniu STACY do COLD APPROACH!! Ich technika i metody były WYBITNE i REWOLUCYJNE! Czy powinni awansować w rankingu?
           </p>
         </div>
 
-        <!-- TRENDING NEWS SEKCJA -->
-        <div class="section-title-news">
-          🔥 Trending News
+        <div class="section-title-news" id="txt-trending-news">
+          🔥 Najnowsze Wieści
         </div>
       </div>
 
@@ -893,7 +856,6 @@
           <button class="auth-btn-small" id="btnAuthAction" onclick="handleAuthAction()">Zaloguj / Zarejestruj</button>
         </div>
 
-        <!-- Tworzenie wpisu (z nakładką przyciemniającą dla niezalogowanych) -->
         <div class="create-post-card" id="postCreateCard">
           <div class="post-lock-overlay" id="postLockOverlay" onclick="openAuthModal()">
             <span class="post-lock-icon">🔒</span>
@@ -972,14 +934,17 @@
       authDomain: "polish-chad-rankings.firebaseapp.com",
       databaseURL: "https://polish-chad-rankings-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "polish-chad-rankings",
-      storageBucket: "polish-chad-rankings.appspot.com",
+      storageBucket: "polish-chad-rankings.firebasestorage.app",
       messagingSenderId: "941798583866",
       appId: "1:941798583866:web:d79633db32004e07c74f03"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+    const AURA_VALUES = [
+      "99.9", "98.4", "96.5", "94.0", "92.1", 
+      "90.5", "88.2", "86.0", "84.7", "82.0", 
+      "80.0", "78.2", "76.5", "74.1", "72.0", 
+      "69.5", "67.2", "65.0", "62.4", "60.0"
+    ];
 
     const pollConfig = {
       targetRank: 1,
@@ -988,27 +953,87 @@
     };
 
     const chadsData = [
-      { id: "chad_1", rank: 1, locked: true, name: "Luka Pączek", titlePl: "Polski Vasily Stepanov", titleEn: "Polish Vasily Stepanov", img: "L.jpg", aura: "99.9", votes: 0, descPl: "Luka to absolutna ikona numer 1 i absolutny filar polskiej sceny looksmaxxingowej.", descEn: "Luka is the undisputed number-one icon and a true pillar of the Polish looksmaxxing scene." },
-      { id: "chad_2", rank: 2, locked: true, name: "Ten od Midasa", titlePl: "Prawdziwy Gymcel", titleEn: "True Gymcel", img: "TOM.jpg", aura: "98.4", votes: 0, descPl: "Midas to jeden z najbardziej charyzmatycznych i zabawnych twórców w polskim podziemiu estetycznym.", descEn: "Midas is one of the most charismatic and entertaining creators in the Polish aesthetic underground." },
-      { id: "chad_3", rank: 3, locked: false, name: "Elomordo", titlePl: "Bóg CPS i Estetyki", titleEn: "The God of CPS and Aesthetics", img: "EM.jpg", aura: "96.5", votes: 0, descPl: "Elomordo zasłynął na scenie ze swoich niesamowitych zdolności w Minecraft CPS.", descEn: "Elomordo made a name for himself on the scene thanks to his Minecraft CPS record." },
-      { id: "chad_4", rank: 4, locked: false, name: "Borys", titlePl: "Prawdziwy Miłośnik Kwasu Azelainowego", titleEn: "True Azelaic Acid Enjoyer", img: "BOR.jpg", aura: "94.0", votes: 0, descPl: "Borys to żywa legenda i dowód na potęgę konsekwentnego skincare'u.", descEn: "Borys is a living legend and proof of the power of consistent skincare." },
-      { id: "chad_5", rank: 5, locked: false, name: "Wim", titlePl: "Książę Zuko", titleEn: "Prince Zuko", img: "W.jpg", aura: "92.1", votes: 0, descPl: "Wim zachwyca widownię wybitną proporcją twarzy i kości twarzowych.", descEn: "Wim captivates audiences with his exceptional facial proportions." },
-      { id: "chad_6", rank: 6, locked: false, name: "Szybki Adder", titlePl: "Mistrz Estetycznego Ascension", titleEn: "Master of Aesthetic Ascension", img: "SA1.jpg", aura: "90.5", votes: 0, descPl: "Szybki Adder to postać, która w ekspresowym tempie wykonała niesamowite ascension.", descEn: "The Fast Adder quickly demonstrated incredible aesthetic ascension." },
-      { id: "chad_7", rank: 7, locked: false, name: "Polish Slayer", titlePl: "Prawdziwy MTN", titleEn: "True MTN", img: "PS1.jpg", aura: "88.2", votes: 0, descPl: "Młody looksmaxxer wyznaczający nowe standardy na TikToku.", descEn: "Young looksmaxxer setting new standards on TikTok." },
-      { id: "chad_8", rank: 8, locked: false, name: "Testoperu", titlePl: "Prawdziwy Sprzedawca Peptydów", titleEn: "True Peptide Seller", img: "T.jpg", aura: "86.0", votes: 0, descPl: "Znany z bezkompromisowego podejścia do optymalizacji formy.", descEn: "Known for his uncompromising approach to optimizing physique." },
-      { id: "chad_9", rank: 9, locked: false, name: "Beft", titlePl: "Prawdziwy Nastolatek", titleEn: "True Teen", img: "BEF.jpg", aura: "84.7", votes: 0, descPl: "Młody zawodnik o potężnym potencjale estetycznym.", descEn: "Young competitor with immense aesthetic potential." },
-      { id: "chad_10", rank: 10, locked: false, name: "Maksym Wołczyk", titlePl: "Panienka Lekkich Obyczajów", titleEn: "A Lady of Easy Virtue", img: "MW.jpg", aura: "82.0", votes: 0, descPl: "Zasłynął ze swojej dziesięcioletniej pracy. Obecnie na emeryturze.", descEn: "Renowned for his ten-year career. Currently retired." },
-      { id: "chad_11", rank: 11, locked: true, name: "Tony", titlePl: "Król Rynienki Podnosowej", titleEn: "Philtrum King", img: "TON.jpg", aura: "80.0", votes: 0, descPl: "Oficjalny Philtrum King polskiego podziemia.", descEn: "Official Philtrum King of the Polish underground." },
-      { id: "chad_12", rank: 12, locked: true, name: "Duduś", titlePl: "Ukryty Diament Podziemia", titleEn: "Hidden Diamond of the Underground", img: "DUD.jpg", aura: "78.2", votes: 0, descPl: "Czarny koń polskiej sceny looksmaxxingu.", descEn: "Dark horse of the Polish looksmaxxing scene." },
-      { id: "chad_13", rank: 13, locked: true, name: "SSman", titlePl: "Król Rozwoju Twarzy do Przodu", titleEn: "King of Forward Facial Growth", img: "SSM.jpg", aura: "76.5", votes: 0, descPl: "Gigant o wzroście 201 cm i potężnej strukturze kości.", descEn: "A 6'6 giant with impressive skeletal structure." },
-      { id: "chad_14", rank: 14, locked: true, name: "Michael Ossowski", titlePl: "Twarz High Fashion", titleEn: "The Face of High Fashion", img: "MO.jpg", aura: "74.1", votes: 0, descPl: "Profesjonalny model z hunter eyes i hollow cheeks.", descEn: "Professional model featuring hunter eyes and hollow cheeks." },
-      { id: "chad_15", rank: 15, locked: true, name: "Polubiński", titlePl: "Mistrz Mrocznej Estetyki", titleEn: "Master of Dark Aesthetics", img: "POL.jpg", aura: "72.0", votes: 0, descPl: "Znany z drapieżnego wyglądu i ostrej linii żuchwy.", descEn: "Known for his predatory look and sharp jawline." }
+      {
+        id: "chad_1",
+        rank: 1,
+        locked: true,
+        name: "Luka",
+        titlePl: "Polski Vasily Stepanov",
+        titleEn: "Polish Vasily Stepanov",
+        img: "L.jpg",
+        aura: "99.9",
+        votes: 0,
+        descPl: "Luka to absolutna ikona numer 1 i absolutny filar polskiej sceny looksmaxxingowej. Wyznacza nienaruszalne standardy w podziemiu estetyki, bezustannie zadowalając widzów genialnym kośćcem twarzy, podręcznikowym profilem oraz doskonałymi proporcjami. To bezdyskusyjny lider i wyznacznik wyższych sfer PSL, na którym wzoruje się całe młodociane pokolenie walczące o własny glow-up.",
+        descEn: "Luka is the undisputed number-one icon and a true pillar of the Polish looksmaxxing scene. He sets the gold standard within the aesthetics underground, constantly impressing his audience with a brilliant facial bone structure, a textbook profile, and perfect proportions. He is the unquestionable leader and a benchmark of the PSL elite role model for the entire generation of young men striving for their own glow-up."
+      },
+      {
+        id: "chad_2",
+        rank: 2,
+        locked: true,
+        name: "Ten od Midasa",
+        titlePl: "Prawdziwy Gymcel",
+        titleEn: "True Gymcel",
+        img: "TOM.jpg",
+        aura: "98.4",
+        votes: 0,
+        descPl: "Midas to jeden z najbardziej charyzmatycznych i zabawnych twórców w polskim podziemiu estetycznym. Zgromadził wokół siebie ogromną społeczność wiernych fanów, bezbłędnie łącząc świetny wygląd z dystansem do siebie i genialnym poczuciem humoru. Jego niesamowite ascension oraz dopracowana aparycja nieustannie zadowalają widownię, udowadniając, że potężne walory estetyczne idą w parze z unikalną charyzmą.",
+        descEn: "Midas is one of the most charismatic and entertaining creators in the Polish aesthetic underground. He has built a massive community of loyal fans by flawlessly combining a striking appearance with self-deprecating humor and a brilliant wit. His incredible ascension and polished look consistently delight his audience, proving that powerful aesthetic appeal goes hand in hand with unique charisma."
+      },
+      {
+        id: "chad_3",
+        rank: 3,
+        locked: false,
+        name: "Elomordo",
+        titlePl: "Bóg CPS i Estetyki",
+        titleEn: "The God of CPS and Aesthetics",
+        img: "EM.jpg",
+        aura: "96.5",
+        votes: 0,
+        descPl: "Elomordo zasłynął na scenie ze swoich niesamowitych zdolności. Zadowala swoim rekordem CPS w Minecraft. Jego dbałość o estetykę w każdym detalu przyniosła mu ogromny szacunek.",
+        descEn: "Elomordo made a name for himself on the scene thanks to his incredible skills. He impresses with his Minecraft CPS record. His attention to aesthetic detail has earned him immense respect."
+      },
+      { id: "chad_4", rank: 4, locked: false, name: "Borys", titlePl: "Prawdziwy Miłośnik Kwasu Azelainowego", titleEn: "True Azelaic Acid Enjoyer", img: "BOR.jpg", aura: "94.0", votes: 0, descPl: "Borys to żywa legenda i koronny dowód na potęgę konsekwentnego skincare'u. W zaledwie 3 miesiące przeszedł ekstremalny glow-up – z zapryszczonego chłopca do posiadacza idealnej, szklanej cery.", descEn: "Borys is a living legend and the ultimate proof of the power of a consistent skincare routine. In just three months, he underwent an extreme glow-up—transforming from a pimply boy into someone with a flawless, glass-like complexion." },
+      { id: "chad_5", rank: 5, locked: false, name: "Wim", titlePl: "Książę Zuko", titleEn: "Prince Zuko", img: "W.jpg", aura: "92.1", votes: 0, descPl: "Wim to jedna z najbardziej intrygujących postaci w polskim podziemiu estetycznym. Choć charakterystyczna blizna na jego twarzy wciąż pozostaje owiana tajemnicą, Wim bezkompromisowo zadowala widownię wybitną proporcją twarzy oraz niesamowitą budową kości twarzowych.", descEn: "Wim is one of the most intriguing figures in the Polish underground aesthetic scene. Although the distinctive scar on his face remains shrouded in mystery, Wim unfailingly captivates audiences with his exceptional facial proportions and remarkable bone structure." },
+      { id: "chad_6", rank: 6, locked: false, name: "Szybki Adder", titlePl: "Mistrz Estetycznego Ascension", titleEn: "Master of Aesthetic Ascension", img: "SA1.jpg", aura: "90.5", votes: 0, descPl: "Szybki Adder to postać, która w ekspresowym tempie pokazała, czym jest niesamowite ascension w polskim wizerunku. Jego idealnie zbalansowana, estetyczna budowa ciała zadowala rzesze fanów, stając się definicją męskiego ideału.", descEn: "The Fast Adder is a figure who quickly demonstrated the incredible ascension in Polish image. His perfectly balanced, aesthetic physique pleases legions of fans, becoming the definition of the masculine ideal." },
+      { id: "chad_7", rank: 7, locked: false, name: "Polish Slayer", titlePl: "Prawdziwy MTN", titleEn: "True MTN", img: "PS1.jpg", aura: "88.2", votes: 0, descPl: "Polish Slayer to młody, tiktokowy looksmaxxer, który próbuje podbić polską scenę estetyczną. Na co dzień zadowala rzesze widzów swoim nieprzeciętnym wyglądem oraz wyznacza nowe standardy dla młodego pokolenia.", descEn: "Polish Slayer is a young TikTok looksmaxxer aiming to conquer the Polish aesthetics scene. He captivates legions of viewers with his exceptional looks and sets new standards for the younger generation." },
+      { id: "chad_8", rank: 8, locked: false, name: "Testoperu", titlePl: "Prawdziwy Sprzedawca Peptydów", titleEn: "True Peptide Seller", img: "T.jpg", aura: "86.0", votes: 0, descPl: "Testoperu to jedna z najbardziej wyrazistych i kontrowersyjnych postaci w polskim podziemiu estetycznym. Znany z bezkompromisowego podejścia do chemicznej optymalizacji formy, zasłynął głośną dramą wokół handlu peptydami i oferowania ich nieletnim.", descEn: "Testoperu is one of the most distinctive and controversial figures in the Polish aesthetic underground. Known for his uncompromising approach to the chemical optimization of physique, he gained notoriety amidst a major controversy surrounding the trade in peptides and their sale to minors." },
+      { id: "chad_9", rank: 9, locked: false, name: "Beft", titlePl: "Prawdziwy Nastolatek", titleEn: "True Teen", img: "BEF.jpg", aura: "84.7", votes: 0, descPl: "Beft to wciąż mało znana, ale niezwykle obiecująca postać w polskim podziemiu estetycznym, która zdecydowanie zasługuje na znacznie większą uwagę. Jako autentyczny „Prawdziwy Nastolatek” bezustannie zadowala widzów dopracowaną, estetyczną sylwetką oraz młodzieńczym potencjałem.", descEn: "Beft remains a little-known yet incredibly promising figure in the Polish aesthetic underground who definitely deserves far more attention. A genuine „True Teen”, he consistently delights viewers with his polished, aesthetic look and youthful potential." },
+      { id: "chad_10", rank: 10, locked: false, name: "Maksym Wołczyk", titlePl: "Panienka Lekkich Obyczajów", titleEn: "A Lady of Easy Virtue", img: "MW.jpg", aura: "82.0", votes: 0, descPl: "Maksym Wołczyk zasłynął z swojej niewarygodnej pracy. W swoim stażu spędził 10 lat oraz zadowolił wiele klientów. Niestety Maksym skończył swoją karierę i przeszedł na emeryturę.", descEn: "Maksym Wołczyk became renowned for his exceptional work. Over the course of his ten-year career, he satisfied many clients. Unfortunately, Maksym has ended his career and retired." },
+      { id: "chad_11", rank: 11, locked: true, name: "Tony", titlePl: "Król Rynienki Podnosowej", titleEn: "Philtrum King", img: "TON.jpg", aura: "80.0", votes: 0, descPl: "Tony to oficjalny „Philtrum King” polskiego podziemia estetycznego, który pod opieką samego Luki przeszedł niesamowite ascension. Dzięki perfekcyjnie zachowanym proporcjom podnosowym, dociętej żuchwie i wyrazistym kościom policzkowym nieustannie zadowala widownię swoim unikalnym wyglądem. To żywy dowód na to, co potrafi przynieść odpowiedni mentoring pod skrzydłami ikony numer 1.", descEn: "Tony is the official „Philtrum King“ of the Polish aesthetic underground, having undergone an incredible transformation under the mentorship of Luka himself. With perfectly maintained sub-nasal proportions, a chiseled jawline, and striking cheekbones, he constantly delights his audience with his unique look. He is living proof of what can be achieved through proper mentoring under the wing of the number one icon." },
+      { id: "chad_12", rank: 12, locked: true, name: "Duduś", titlePl: "Ukryty Diament Podziemia", titleEn: "Hidden Diamond of the Underground", img: "DUD.jpg", aura: "78.2", votes: 0, descPl: "Duduś to wciąż mało znany, ale niezwykle obiecujący polski looksmaxxer, który po cichu wyrasta na czarnego konia całej sceny. Bezustannie zadowala widownię idealnie ostrym profilem żuchwy, czystą cerą oraz swobodnym, ulicznym klimatem. Choć dopiero walczy o większy rozgłos, jego potężny potencjał estetyczny sprawia, że zdecydowanie zasługuje na stałe miejsce w ścisłej czołówce.", descEn: "Duduś is a still-little-known but incredibly promising Polish looksmaxxer who is quietly emerging as the dark horse of the entire scene. He consistently delights his audience with a razor-sharp jawline, a clear complexion, and a laid-back street vibe. Although he is still striving for wider recognition, his immense aesthetic potential means he definitely deserves a permanent spot at the very top." },
+      { id: "chad_13", rank: 13, locked: true, name: "SSman", titlePl: "Król Rozwoju Twarzy do Przodu", titleEn: "King of Forward Facial Growth", img: "SSM.jpg", aura: "76.5", votes: 0, descPl: "SSman to mało znany, ale posiadający potężne warunki reprezentant polskiego podziemia. Prawdziwy gigant mierzący aż 201 cm wzrostu, który bezapelacyjnie dzierży miano Króla Rozwoju Twarzy do Przodu. Zadowala widownię wybitną masą kości, perfekcyjną projekcją profilu i potężną posturą. Choć działa po cichu, jego genetyczne parametry stawiają go w absolutnej czołówce czystego kośćca.", descEn: "SSman is a lesser-known yet physically imposing representative of the Polish underground scene. A true giant standing a full 6'6 ft tall, he indisputably holds the title of King of Forward Growth. He impresses audiences with exceptional bone mass, perfect profile projection, and a massive physique. Although he operates quietly, his genetic attributes place him at the absolute pinnacle when it comes to pure skeletal structure." },
+      { id: "chad_14", rank: 14, locked: true, name: "Michael Ossowski", titlePl: "Twarz High Fashion", titleEn: "The Face of High Fashion", img: "MO.jpg", aura: "74.1", votes: 0, descPl: "Michael Ossowski to profesjonalny model, który wnosi wybiegowy poziom high fashion prosto do czołówki rankingu. Bezustannie zadowala widzów hipnotyzującym spojrzeniem typu hunter eyes, idealną fryzurą oraz wyrazistym efektem hollow cheeks. Posągowa struktura kości twarzy i naturalna elegancja czynią z niego żywy dowód na to, jak wygląda prawdziwy poziom pro-modelingu.", descEn: "Michael Ossowski is a professional model who brings high-fashion runway standards to the top of the rankings. He consistently captivates audiences with his hypnotic hunter eyes, impeccable hairstyle, and striking hollow-cheeked look. His statuesque bone structure and natural elegance serve as living proof of what true professional-level modeling looks like." },
+      { id: "chad_15", rank: 15, locked: true, name: "Polubiński", titlePl: "Mistrz Mrocznej Estetyki", titleEn: "Master of Dark Aesthetics", img: "POL.jpg", aura: "72.0", votes: 0, descPl: "Polubiński to postać, która przyciąga uwagę swoim tajemniczym, mrocznym klimatem i potężną fizjonomią. Bezustannie zadowala widzów ostrą linią żuchwy, głębokim spojrzeniem typu hunter eyes oraz wyrazistym profilem. Nawet w chłodnym, stonowanym oświetleniu jego potężny kościec twarzy tworzy absolutnie bezkompromisowy, drapieżny wygląd.", descEn: "Polubiński is a figure who commands attention with his mysterious, dark aura and powerful facial structure. He consistently captivates viewers with a sharp jawline, deep-set hunter eyes, and a striking profile. Even in cool, subdued lighting, his robust bone structure creates an utterly uncompromising, predatory look." },
     ];
 
     const hallOfFameData = [
-      { id: "hof_1", name: "Mariusz Pudzianowski", rolePl: "Ikona Strongman", roleEn: "Strongman Icon", img: "MP.jpg", descPl: "Symbol etosu pracy.", descEn: "Symbol of work ethic." },
-      { id: "hof_2", name: "Robert Makłowicz", rolePl: "Gladiator Kultury", roleEn: "Culture Gladiator", img: "RM.jpg", descPl: "Symbol klasy.", descEn: "Symbol of class." },
-      { id: "hof_3", name: "Jan Paweł II", rolePl: "Papież Polak", roleEn: "Polish Pope", img: "J.jpg", descPl: "Globalny symbol potężnej aury.", descEn: "Global symbol of aura." }
+      {
+        id: "hof_1",
+        name: "Mariusz Pudzianowski",
+        rolePl: "Ikona dyscypliny Strongman",
+        roleEn: "The icon of the Strongman discipline",
+        img: "MP.jpg",
+        descPl: "Symbol niezłomnego etosu pracy.",
+        descEn: "A symbol of an unwavering work ethic."
+      },
+      {
+        id: "hof_2",
+        name: "Robert Makłowicz",
+        rolePl: "Gladiator kultury i sztuki kulinarnej",
+        roleEn: "Gladiator of culture and culinary art",
+        img: "RM.jpg",
+        descPl: "Symbol bezpretensjonalnej klasy i radości z życia.",
+        descEn: "A symbol of unpretentious class and joy of life."
+      },
+      {
+        id: "hof_3",
+        name: "Jan Paweł II",
+        rolePl: "Papież Polak",
+        roleEn: "The Polish Pope",
+        img: "J.jpg",
+        descPl: "Globalny symbol duchowej siły i potężnej aury, który odmienił losy świata.",
+        descEn: "A global symbol of spiritual strength and a powerful aura that changed the fate of the world."
+      }
     ];
 
     const i18n = {
@@ -1035,29 +1060,30 @@
         tabRankings: "📋 Rankingi",
         tabNews: "📰 News",
         tabCommunity: "💬 Społeczność",
-        notLoggedIn: "Niezalogowany",
-        loggedInAs: "Zalogowano jako: ",
-        loginBtn: "Zaloguj / Zarejestruj",
-        logoutBtn: "Wyloguj",
+        
+        breakingHeader: "BREAKING NEWS",
+        breakingTitle: "Hexumlite X Clav COLD APPROACH?",
+        breakingOverlay: '"breaking all the rules of cold approach" ❤️😭',
+        breakingDesc: "Po spotkaniu 2 CHADÓW OD RAZU bierze się do ROBOTY, krążąc po SĄSIEDZTWIE w poszukiwaniu STACY do COLD APPROACH!! Ich technika i metody były WYBITNE i REWOLUCYJNE! Czy powinni awansować w rankingu?",
+        trendingNews: "🔥 Najnowsze Wieści",
+
+        statusLoggedOut: "Niezalogowany",
+        statusLoggedIn: "Zalogowany jako: ",
+        btnAuthLogin: "Zaloguj / Zarejestruj",
+        btnAuthLogout: "Wyloguj",
+        lockOverlayText: "Zaloguj się, aby dodać wpis",
+        postPlaceholder: "Napisz coś na społeczności...",
+        addImgBtn: "Dodaj zdjęcie",
         publishBtn: "Opublikuj",
-        commentBtn: "Komentuj",
-        translateBtn: "🌐 Przetłumacz",
-        showOriginalBtn: "↩️ Ukryj tłumaczenie",
-        translating: "Tłumaczenie...",
-        writeComment: "Napisz komentarz...",
-        writePost: "Napisz coś na społeczności...",
+        commentPlaceholder: "Napisz komentarz...",
+        commentBtn: "Skomentuj",
+        translateBtn: "🌐 Tłumacz",
         authTitle: "Konto Chad",
-        usernamePlaceholder: "Twój Nick / Pseudonim",
-        emailPlaceholder: "E-mail",
-        passwordPlaceholder: "Hasło",
+        authNickPlaceholder: "Twój Nick / Pseudonim",
+        authEmailPlaceholder: "E-mail",
+        authPasswordPlaceholder: "Hasło",
         modalLoginBtn: "Zaloguj",
-        modalRegisterBtn: "Zarejestruj",
-        deleteBtn: "Usuń",
-        lockOverlayText: "🔒 Zaloguj się, aby dodać wpis",
-        addImage: "Dodaj zdjęcie",
-        addImgComm: "Zdjęcie",
-        uploading: "Wysyłanie...",
-        noPosts: "Brak wpisów. Bądź pierwszy!"
+        modalRegisterBtn: "Zarejestruj"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -1082,38 +1108,52 @@
         tabRankings: "📋 Rankings",
         tabNews: "📰 News",
         tabCommunity: "💬 Community",
-        notLoggedIn: "Not logged in",
-        loggedInAs: "Logged in as: ",
-        loginBtn: "Log In / Register",
-        logoutBtn: "Log Out",
-        publishBtn: "Post",
+
+        breakingHeader: "BREAKING NEWS",
+        breakingTitle: "Hexumlite X Clav COLD APPROACH?",
+        breakingOverlay: '"breaking all the rules of cold approach" ❤️😭',
+        breakingDesc: "After meeting up, the 2 CHADS IMMEDIATELY get to WORK as they go around the NEIGHBOURHOOD in search for STACYS to COLD APPROACH!! Their technique and methods were OUTSTANDING and REVOLUTIONARY! Should they go up in the rankings?",
+        trendingNews: "🔥 Trending News",
+
+        statusLoggedOut: "Not logged in",
+        statusLoggedIn: "Logged in as: ",
+        btnAuthLogin: "Login / Register",
+        btnAuthLogout: "Logout",
+        lockOverlayText: "Log in to add a post",
+        postPlaceholder: "Write something for the community...",
+        addImgBtn: "Add photo",
+        publishBtn: "Publish",
+        commentPlaceholder: "Write a comment...",
         commentBtn: "Comment",
         translateBtn: "🌐 Translate",
-        showOriginalBtn: "↩️ Hide translation",
-        translating: "Translating...",
-        writeComment: "Write a comment...",
-        writePost: "Write something to the community...",
         authTitle: "Chad Account",
-        usernamePlaceholder: "Your Nick / Pseudonym",
-        emailPlaceholder: "E-mail",
-        passwordPlaceholder: "Password",
-        modalLoginBtn: "Log In",
-        modalRegisterBtn: "Register",
-        deleteBtn: "Delete",
-        lockOverlayText: "🔒 Log in to create a post",
-        addImage: "Add image",
-        addImgComm: "Image",
-        uploading: "Uploading...",
-        noPosts: "No posts yet. Be the first!"
+        authNickPlaceholder: "Your Nickname",
+        authEmailPlaceholder: "E-mail",
+        authPasswordPlaceholder: "Password",
+        modalLoginBtn: "Login",
+        modalRegisterBtn: "Register"
       }
     };
 
     let currentLang = "pl";
     let activeChadId = null;
+    let db = null;
+    let auth = null;
     let currentUser = null;
+    let serverLastResetWeek = null;
     let currentVotesCache = {};
     let selectedPollCandidateId = null;
-    let postsDataCache = {};
+
+    function switchTab(tabName) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-view").forEach(v => v.classList.add("hidden"));
+
+      const activeTabBtn = document.getElementById("txt-tab-" + tabName);
+      const activeView = document.getElementById("view-" + tabName);
+
+      if (activeTabBtn) activeTabBtn.classList.add("active");
+      if (activeView) activeView.classList.remove("hidden");
+    }
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -1132,16 +1172,6 @@
       const c1 = chadsData.find(c => c.id === pollConfig.candidate1Id);
       const c2 = chadsData.find(c => c.id === pollConfig.candidate2Id);
       return !!(c1 && c2 && !c1.locked && !c2.locked);
-    }
-
-    function switchTab(tabName) {
-      document.getElementById("txt-tab-rankings").classList.toggle("active", tabName === 'rankings');
-      document.getElementById("txt-tab-news").classList.toggle("active", tabName === 'news');
-      document.getElementById("txt-tab-community").classList.toggle("active", tabName === 'community');
-
-      document.getElementById("view-rankings").classList.toggle("hidden", tabName !== 'rankings');
-      document.getElementById("view-news").classList.toggle("hidden", tabName !== 'news');
-      document.getElementById("view-community").classList.toggle("hidden", tabName !== 'community');
     }
 
     function renderRankings() {
@@ -1201,6 +1231,7 @@
 
         const card = document.createElement("div");
         card.className = "hof-card";
+
         card.innerHTML = 
           '<div class="hof-img-wrapper">' +
             '<img src="' + item.img + '" class="hof-img" alt="' + item.name + '">' +
@@ -1223,13 +1254,21 @@
       if (c1) {
         document.getElementById("poll-name-1").innerText = c1.name;
         const img1 = document.getElementById("poll-avatar-1");
-        img1.innerHTML = c1.img ? '<img src="' + c1.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : "🗿";
+        if (c1.img) {
+          img1.innerHTML = '<img src="' + c1.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        } else {
+          img1.innerText = "🗿";
+        }
       }
 
       if (c2) {
         document.getElementById("poll-name-2").innerText = c2.name;
         const img2 = document.getElementById("poll-avatar-2");
-        img2.innerHTML = c2.img ? '<img src="' + c2.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : "🗿";
+        if (c2.img) {
+          img2.innerHTML = '<img src="' + c2.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        } else {
+          img2.innerText = "🗿";
+        }
       }
 
       updatePollVotesCount();
@@ -1238,7 +1277,9 @@
 
     function selectPollOption(candidateId) {
       const weekKey = getWeekIdentifier();
-      if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
+      const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
+      if (hasVoted) return;
+
       selectedPollCandidateId = candidateId;
       updatePollUI();
     }
@@ -1276,385 +1317,188 @@
       const v2 = currentVotesCache[pollConfig.candidate2Id] || 0;
       const total = v1 + v2;
 
-      let pct1 = 0, pct2 = 0;
+      let pct1 = 0;
+      let pct2 = 0;
       if (total > 0) {
         pct1 = Math.round((v1 / total) * 100);
         pct2 = 100 - pct1;
       }
 
       const revealed = isPollRevealed();
-      opt1.classList.remove("selected", "voted");
-      opt2.classList.remove("selected", "voted");
+
+      opt1.classList.remove("selected", "voted", "disabled-option");
+      opt2.classList.remove("selected", "voted", "disabled-option");
 
       if (hasVoted) {
         if (revealed) {
-          res1.style.display = "flex"; res2.style.display = "flex";
+          res1.style.display = "flex";
+          res2.style.display = "flex";
+
           document.getElementById("poll-pct-1").innerText = pct1 + "%";
           document.getElementById("poll-cnt-1").innerText = "(" + v1 + ")";
           document.getElementById("poll-pct-2").innerText = pct2 + "%";
           document.getElementById("poll-cnt-2").innerText = "(" + v2 + ")";
-          bar1.style.width = pct1 + "%"; bar2.style.width = pct2 + "%";
+
+          bar1.style.width = pct1 + "%";
+          bar2.style.width = pct2 + "%";
         } else {
-          res1.style.display = "none"; res2.style.display = "none";
-          bar1.style.width = "0%"; bar2.style.width = "0%";
+          res1.style.display = "none";
+          res2.style.display = "none";
+          bar1.style.width = "0%";
+          bar2.style.width = "0%";
         }
 
-        if (votedCandidate === pollConfig.candidate1Id) opt1.classList.add("voted");
-        else if (votedCandidate === pollConfig.candidate2Id) opt2.classList.add("voted");
+        if (votedCandidate === pollConfig.candidate1Id) {
+          opt1.classList.add("voted");
+          opt2.classList.add("disabled-option");
+        } else if (votedCandidate === pollConfig.candidate2Id) {
+          opt2.classList.add("voted");
+          opt1.classList.add("disabled-option");
+        } else {
+          opt1.classList.add("disabled-option");
+          opt2.classList.add("disabled-option");
+        }
 
         btn.disabled = true;
+        btn.classList.add("voted");
         document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVoted;
       } else {
-        res1.style.display = "none"; res2.style.display = "none";
-        bar1.style.width = "0%"; bar2.style.width = "0%";
+        res1.style.display = "none";
+        res2.style.display = "none";
+        bar1.style.width = "0%";
+        bar2.style.width = "0%";
 
-        if (selectedPollCandidateId === pollConfig.candidate1Id) opt1.classList.add("selected");
-        else if (selectedPollCandidateId === pollConfig.candidate2Id) opt2.classList.add("selected");
-
+        if (selectedPollCandidateId === pollConfig.candidate1Id) {
+          opt1.classList.add("selected");
+        } else if (selectedPollCandidateId === pollConfig.candidate2Id) {
+          opt2.classList.add("selected");
+        }
         btn.disabled = !selectedPollCandidateId;
+        btn.classList.remove("voted");
         document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVote;
       }
     }
 
     function castPollVote() {
       if (!selectedPollCandidateId) return;
+
       const weekKey = getWeekIdentifier();
-      if (localStorage.getItem("poll_voted_" + weekKey) !== "1") {
+      const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
+
+      if (!hasVoted) {
         localStorage.setItem("poll_voted_" + weekKey, "1");
         localStorage.setItem("poll_voted_candidate_" + weekKey, selectedPollCandidateId);
         
-        db.ref('votes/' + selectedPollCandidateId).transaction(function(c) { return (c || 0) + 1; });
+        if (db) {
+          db.ref('votes/' + selectedPollCandidateId).transaction(function(currentVotes) {
+            return (currentVotes || 0) + 1;
+          });
+        }
+
         updatePollVotesCount();
         updatePollUI();
       }
     }
 
-    /* FIREBASE AUTH & LOGOWANIE */
-    auth.onAuthStateChanged((user) => {
-      currentUser = user;
-      updateAuthUI();
-      renderPosts();
-    });
+    function applyPublishedOrder(orderArray) {
+      if (!orderArray || !Array.isArray(orderArray)) return;
 
-    function updateAuthUI() {
-      const status = document.getElementById("userAuthStatus");
-      const btn = document.getElementById("btnAuthAction");
-      const overlay = document.getElementById("postLockOverlay");
-
-      if (currentUser) {
-        const isAdmin = currentUser.email === ADMIN_EMAIL;
-        const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
-        const nameDisplay = currentUser.displayName || currentUser.email;
-
-        status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
-        btn.innerText = i18n[currentLang].logoutBtn;
-        if (overlay) overlay.style.display = "none";
-      } else {
-        status.innerText = i18n[currentLang].notLoggedIn;
-        btn.innerText = i18n[currentLang].loginBtn;
-        if (overlay) overlay.style.display = "flex";
-      }
-    }
-
-    function handleAuthAction() {
-      if (currentUser) {
-        auth.signOut();
-      } else {
-        openAuthModal();
-      }
-    }
-
-    function openAuthModal() { document.getElementById("authModal").style.display = "flex"; }
-    function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
-
-    function handleLogin() {
-      const email = document.getElementById("authEmail").value.trim();
-      const pass = document.getElementById("authPassword").value.trim();
-
-      if (!email || !pass) return alert(currentLang === "pl" ? "Wypełnij e-mail i hasło!" : "Please fill in email and password!");
-
-      auth.signInWithEmailAndPassword(email, pass)
-        .then(() => closeAuthModal())
-        .catch(err => alert((currentLang === "pl" ? "Błąd logowania: " : "Login error: ") + err.message));
-    }
-
-    function handleRegister() {
-      const nick = document.getElementById("authUsername").value.trim();
-      const email = document.getElementById("authEmail").value.trim();
-      const pass = document.getElementById("authPassword").value.trim();
-
-      if (!email || !pass) return alert(currentLang === "pl" ? "Wypełnij e-mail i hasło!" : "Please fill in email and password!");
-      if (!nick) return alert(currentLang === "pl" ? "Wpisz swój nick!" : "Please enter your username!");
-
-      auth.createUserWithEmailAndPassword(email, pass)
-        .then((cred) => cred.user.updateProfile({ displayName: nick }))
-        .then(() => closeAuthModal())
-        .catch(err => alert((currentLang === "pl" ? "Błąd rejestracji: " : "Registration error: ") + err.message));
-    }
-
-    /* UPLOAD ZDJĘĆ IMGBB */
-    async function uploadImage(file) {
-      if (!file) return null;
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData
+      chadsData.sort(function(a, b) {
+        let idxA = orderArray.indexOf(a.id);
+        let idxB = orderArray.indexOf(b.id);
+        if (idxA === -1) idxA = 999;
+        if (idxB === -1) idxB = 999;
+        return idxA - idxB;
       });
 
-      const data = await response.json();
-      if (data.success) {
-        return data.data.url;
-      } else {
-        throw new Error("Błąd podczas przesyłania zdjęcia.");
-      }
-    }
-
-    function updateFileName(input, targetId) {
-      const target = document.getElementById(targetId);
-      if (target && input.files && input.files[0]) {
-        target.innerText = " " + input.files[0].name;
-      }
-    }
-
-    /* TWORZENIE WPISÓW & KOMENTARZY */
-    async function createPost() {
-      if (!currentUser) return openAuthModal();
-
-      const textInput = document.getElementById("postInput");
-      const fileInput = document.getElementById("postImage");
-      const text = textInput.value.trim();
-      const file = fileInput.files[0];
-
-      if (!text && !file) return alert(currentLang === "pl" ? "Napisz coś lub dodaj zdjęcie!" : "Write something or attach an image!");
-
-      const btn = document.getElementById("txt-publish-btn");
-      const origText = btn.innerText;
-      btn.innerText = i18n[currentLang].uploading;
-      btn.disabled = true;
-
-      try {
-        const imageUrl = await uploadImage(file);
-        await db.ref('posts').push({
-          author: currentUser.displayName || currentUser.email,
-          uid: currentUser.uid,
-          userEmail: currentUser.email,
-          text: text,
-          imageUrl: imageUrl || null,
-          timestamp: Date.now()
-        });
-
-        textInput.value = "";
-        fileInput.value = "";
-        document.getElementById("postImageName").innerText = "";
-      } catch (err) {
-        alert("Błąd: " + err.message);
-      } finally {
-        btn.innerText = i18n[currentLang].publishBtn;
-        btn.disabled = false;
-      }
-    }
-
-    async function addComment(postId) {
-      if (!currentUser) return openAuthModal();
-
-      const input = document.getElementById(`commentInput_${postId}`);
-      const fileInput = document.getElementById(`commentImg_${postId}`);
-      const text = input ? input.value.trim() : "";
-      const file = fileInput ? fileInput.files[0] : null;
-
-      if (!text && !file) return;
-
-      try {
-        const imageUrl = await uploadImage(file);
-        await db.ref(`posts/${postId}/comments`).push({
-          author: currentUser.displayName || currentUser.email,
-          uid: currentUser.uid,
-          userEmail: currentUser.email,
-          text: text,
-          imageUrl: imageUrl || null,
-          timestamp: Date.now()
-        });
-
-        if (input) input.value = "";
-        if (fileInput) fileInput.value = "";
-      } catch (err) {
-        alert("Błąd: " + err.message);
-      }
-    }
-
-    /* USUWANIE WPISÓW I KOMENTARZY */
-    function deletePost(postId) {
-      if (!currentUser) return;
-      const isAdmin = currentUser.email === ADMIN_EMAIL;
-      const post = postsDataCache[postId];
-      const isOwner = post && post.uid === currentUser.uid;
-
-      if (!isAdmin && !isOwner) {
-        alert(currentLang === "pl" ? "Brak uprawnień do usunięcia tego wpisu!" : "Unauthorized!");
-        renderPosts();
-        return;
-      }
-
-      if (confirm(currentLang === "pl" ? 'Czy na pewno chcesz usunąć ten post?' : 'Are you sure you want to delete this post?')) {
-        db.ref(`posts/${postId}`).remove();
-      }
-    }
-
-    function deleteComment(postId, commentId) {
-      if (!currentUser) return;
-      const isAdmin = currentUser.email === ADMIN_EMAIL;
-      const post = postsDataCache[postId];
-      const comment = (post && post.comments) ? post.comments[commentId] : null;
-      const isOwner = comment && comment.uid === currentUser.uid;
-
-      if (!isAdmin && !isOwner) {
-        alert(currentLang === "pl" ? "Brak uprawnień do usunięcia tego komentarza!" : "Unauthorized!");
-        renderPosts();
-        return;
-      }
-
-      if (confirm(currentLang === "pl" ? 'Usunąć komentarz?' : 'Delete comment?')) {
-        db.ref(`posts/${postId}/comments/${commentId}`).remove();
-      }
-    }
-
-    /* UNIWERSALNA FUNKCJA TŁUMACZENIA TEKSTÓW */
-    async function translateContent(btn, text, targetDivId) {
-      const targetDiv = document.getElementById(targetDivId);
-      if (!targetDiv) return;
-
-      if (btn.dataset.translated === "true") {
-        targetDiv.style.display = "none";
-        btn.dataset.translated = "false";
-        btn.innerText = i18n[currentLang].translateBtn;
-        return;
-      }
-
-      btn.innerText = i18n[currentLang].translating;
-
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${currentLang}`);
-        const data = await res.json();
-        if (data && data.responseData && data.responseData.translatedText) {
-          targetDiv.innerText = "🌐 " + data.responseData.translatedText;
-          targetDiv.style.display = "block";
-          btn.dataset.translated = "true";
-          btn.innerText = i18n[currentLang].showOriginalBtn;
-        } else {
-          btn.innerText = i18n[currentLang].translateBtn;
-        }
-      } catch (e) {
-        btn.innerText = i18n[currentLang].translateBtn;
-      }
-    }
-
-    /* RENDEROWANIE FEEDU SPOŁECZNOŚCI */
-    function renderPosts() {
-      const container = document.getElementById("postsContainer");
-      if (!container) return;
-      container.innerHTML = "";
-
-      const keys = Object.keys(postsDataCache);
-      if (keys.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">${i18n[currentLang].noPosts}</p>`;
-        return;
-      }
-
-      const postsArray = keys.map(key => ({ id: key, ...postsDataCache[key] })).reverse();
-
-      postsArray.forEach(post => {
-        const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
-        const isOwner = currentUser && currentUser.uid === post.uid;
-        const canDeletePost = isAdmin || isOwner;
-
-        const deletePostBtn = canDeletePost 
-          ? `<button class="delete-btn-admin" onclick="deletePost('${post.id}')">${i18n[currentLang].deleteBtn}</button>` 
-          : '';
-
-        const postImgHTML = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img" alt="Post attachment">` : '';
-
-        const safePostText = post.text ? post.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
-        const postTranslateHTML = post.text 
-          ? `<div class="translated-box" id="postTrans_${post.id}"></div>
-             <button class="translate-btn" onclick="translateContent(this, \`${safePostText}\`, 'postTrans_${post.id}')">${i18n[currentLang].translateBtn}</button>` 
-          : '';
-
-        let commentsHTML = '';
-        if (post.comments) {
-          Object.keys(post.comments).forEach(cId => {
-            const c = post.comments[cId];
-            const canDeleteComm = isAdmin || (currentUser && currentUser.uid === c.uid);
-            const delCommBtn = canDeleteComm 
-              ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
-              : '';
-            const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img" alt="Comment image">` : '';
-            const safeCommText = c.text ? c.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
-
-            commentsHTML += `
-              <div class="comment-item">
-                <div class="comment-header">
-                  <span class="comment-author">${c.author} ${delCommBtn}</span>
-                  <span class="comment-time">${new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                </div>
-                ${c.text ? `<div class="comment-text">${c.text}</div>` : ''}
-                ${commImg}
-                <div class="translated-box" id="commTrans_${post.id}_${cId}"></div>
-                ${c.text ? `<button class="translate-btn" onclick="translateContent(this, \`${safeCommText}\`, 'commTrans_${post.id}_${cId}')">${i18n[currentLang].translateBtn}</button>` : ''}
-              </div>
-            `;
-          });
-        }
-
-        const commentInputHTML = `
-          <div class="comments-section">
-            ${commentsHTML}
-            <div class="comment-input-box">
-              <div style="display:flex; gap:6px; width:100%;">
-                <input type="text" class="comment-input" id="commentInput_${post.id}" placeholder="${i18n[currentLang].writeComment}">
-                <button class="auth-btn-small" onclick="addComment('${post.id}')">${i18n[currentLang].commentBtn}</button>
-              </div>
-              <label class="file-input-btn" style="align-self: flex-start; font-size: 0.7rem; padding: 4px 8px;">
-                📷 <span>${i18n[currentLang].addImgComm}</span>
-                <input type="file" id="commentImg_${post.id}" accept="image/*" style="display:none;" onchange="updateFileName(this, 'cImgName_${post.id}')">
-              </label>
-              <span id="cImgName_${post.id}" style="font-size: 0.7rem; color: var(--purple-light);"></span>
-            </div>
-          </div>
-        `;
-
-        const postDiv = document.createElement("div");
-        postDiv.className = "post-item";
-        postDiv.innerHTML = `
-          <div class="post-header">
-            <span class="post-author">${post.author} ${deletePostBtn}</span>
-            <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-          </div>
-          ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
-          ${postImgHTML}
-          ${postTranslateHTML}
-          ${commentInputHTML}
-        `;
-
-        container.appendChild(postDiv);
+      chadsData.forEach(function(chad, index) {
+        chad.rank = index + 1;
+        chad.aura = AURA_VALUES[index] || (80 - index).toFixed(1);
       });
-    }
 
-    /* REALTIME DATABASE FEED LISTENER */
-    db.ref('posts').on('value', (snapshot) => {
-      postsDataCache = snapshot.val() || {};
-      renderPosts();
-    });
-
-    db.ref('votes').on('value', function(snapshot) {
-      currentVotesCache = snapshot.val() || {};
-      chadsData.forEach(chad => { chad.votes = currentVotesCache[chad.id] || 0; });
-      updatePollVotesCount();
+      renderRankings();
       updatePollUI();
-    });
+    }
 
-    /* JĘZYK I INTERFEJS */
+    function triggerWeeklyReset() {
+      const currentWeekId = getWeekIdentifier();
+
+      const newlyUnlocked = [
+        pollConfig.candidate1Id, 
+        pollConfig.candidate2Id,
+        "chad_11", 
+        "chad_12", 
+        "chad_13", 
+        "chad_14", 
+        "chad_15"
+      ];
+
+      chadsData.forEach(function(chad) {
+        if (newlyUnlocked.includes(chad.id)) {
+          chad.locked = false;
+        }
+      });
+
+      chadsData.sort(function(a, b) {
+        const vA = currentVotesCache[a.id] || 0;
+        const vB = currentVotesCache[b.id] || 0;
+        return vB - vA;
+      });
+
+      const newOrder = chadsData.map(function(c) { return c.id; });
+      const resetVotes = {};
+      chadsData.forEach(function(c) {
+        resetVotes[c.id] = 0;
+        c.votes = 0;
+      });
+
+      applyPublishedOrder(newOrder);
+
+      if (db) {
+        db.ref('unlocked_ids').once('value', function(snapshot) {
+          const currentUnlocked = snapshot.val() || [];
+          const updatedUnlocked = Array.from(new Set([...currentUnlocked, ...newlyUnlocked]));
+
+          db.ref().update({
+            'published_order': newOrder,
+            'votes': resetVotes,
+            'last_reset_week': currentWeekId,
+            'unlocked_ids': updatedUnlocked
+          });
+        });
+      }
+    }
+
+    function updateCountdown() {
+      const timerElem = document.getElementById("timer-text");
+      if (!timerElem) return;
+
+      const now = new Date();
+      const nextUpdate = new Date();
+      
+      const daysUntilSunday = (7 - now.getDay()) % 7;
+      nextUpdate.setDate(now.getDate() + daysUntilSunday);
+      nextUpdate.setHours(23, 59, 59, 0);
+
+      const diff = nextUpdate - now;
+
+      if (diff <= 1000) {
+        const currentWeekId = getWeekIdentifier();
+        if (serverLastResetWeek !== currentWeekId) {
+          serverLastResetWeek = currentWeekId;
+          triggerWeeklyReset();
+        }
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      const timeStr = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+      timerElem.innerText = i18n[currentLang].timerPrefix + timeStr;
+    }
+
     function setLanguage(lang) {
       currentLang = lang;
       document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
@@ -1668,34 +1512,56 @@
       document.getElementById("txt-hof-title").innerText = i18n[lang].hofTitle;
       document.getElementById("txt-hof-sub").innerText = i18n[lang].hofSub;
       document.getElementById("txt-poll-badge").innerText = i18n[lang].pollBadge;
+      
       document.getElementById("txt-tab-rankings").innerText = i18n[lang].tabRankings;
       document.getElementById("txt-tab-news").innerText = i18n[lang].tabNews;
       document.getElementById("txt-tab-community").innerText = i18n[lang].tabCommunity;
-      document.getElementById("postInput").placeholder = i18n[lang].writePost;
-      document.getElementById("txt-publish-btn").innerText = i18n[lang].publishBtn;
-      document.getElementById("txt-lock-overlay").innerText = i18n[lang].lockOverlayText;
-      document.getElementById("txt-add-img").innerText = i18n[lang].addImage;
 
-      document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
-      document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
-      document.getElementById("authEmail").placeholder = i18n[lang].emailPlaceholder;
-      document.getElementById("authPassword").placeholder = i18n[lang].passwordPlaceholder;
-      document.getElementById("txt-login-btn").innerText = i18n[lang].modalLoginBtn;
-      document.getElementById("txt-register-btn").innerText = i18n[lang].modalRegisterBtn;
+      // News Translations
+      const setIfExist = (id, text) => { const el = document.getElementById(id); if(el) el.innerText = text; };
+      setIfExist("txt-breaking-header", i18n[lang].breakingHeader);
+      setIfExist("txt-breaking-header-news", i18n[lang].breakingHeader);
+      setIfExist("txt-breaking-title", i18n[lang].breakingTitle);
+      setIfExist("txt-breaking-title-news", i18n[lang].breakingTitle);
+      setIfExist("txt-breaking-overlay", i18n[lang].breakingOverlay);
+      setIfExist("txt-breaking-overlay-news", i18n[lang].breakingOverlay);
+      setIfExist("txt-breaking-desc", i18n[lang].breakingDesc);
+      setIfExist("txt-breaking-desc-news", i18n[lang].breakingDesc);
+      setIfExist("txt-trending-news", i18n[lang].trendingNews);
 
+      // Community & Auth Translations
+      setIfExist("txt-lock-overlay", i18n[lang].lockOverlayText);
+      setIfExist("txt-add-img", i18n[lang].addImgBtn);
+      setIfExist("txt-publish-btn", i18n[lang].publishBtn);
+      setIfExist("txt-auth-title", i18n[lang].authTitle);
+      setIfExist("txt-login-btn", i18n[lang].modalLoginBtn);
+      setIfExist("txt-register-btn", i18n[lang].modalRegisterBtn);
+
+      const postInput = document.getElementById("postInput");
+      if (postInput) postInput.placeholder = i18n[lang].postPlaceholder;
+
+      const authNick = document.getElementById("authUsername");
+      if (authNick) authNick.placeholder = i18n[lang].authNickPlaceholder;
+
+      const authEmail = document.getElementById("authEmail");
+      if (authEmail) authEmail.placeholder = i18n[lang].authEmailPlaceholder;
+
+      const authPass = document.getElementById("authPassword");
+      if (authPass) authPass.placeholder = i18n[lang].authPasswordPlaceholder;
+
+      updateAuthUI();
       setupPollUI();
       renderRankings();
       renderHallOfFame();
-      updateAuthUI();
-      renderPosts();
 
       if (activeChadId !== null) {
-        const chad = chadsData.find(c => c.id === activeChadId);
+        const chad = chadsData.find(function(c) { return c.id === activeChadId; });
         if (chad) {
           updateModalText(chad);
           updateVoteButtonState(chad.id);
         }
       }
+      updateCountdown();
     }
 
     function openModal(chad) {
@@ -1703,9 +1569,11 @@
       const isLocked = chad.locked;
       const avatarContainer = document.getElementById("modalAvatarContainer");
 
-      avatarContainer.innerHTML = (!isLocked && chad.img) 
-        ? '<img src="' + chad.img + '" class="modal-avatar" alt="Chad">'
-        : '<div class="modal-avatar">❓</div>';
+      if (!isLocked && chad.img) {
+        avatarContainer.innerHTML = '<img src="' + chad.img + '" class="modal-avatar" alt="Chad">';
+      } else {
+        avatarContainer.innerHTML = '<div class="modal-avatar">❓</div>';
+      }
 
       document.getElementById("modalStatRank").innerText = "#" + chad.rank;
       document.getElementById("modalStatAura").innerText = isLocked ? "???" : chad.aura;
@@ -1713,27 +1581,38 @@
 
       updateModalText(chad);
       updateVoteButtonState(chad.id);
+
       document.getElementById("profileModal").style.display = "flex";
     }
 
     function updateModalText(chad) {
       const isLocked = chad.locked;
       document.getElementById("modalName").innerText = isLocked ? i18n[currentLang].unrevealedName : chad.name;
-      document.getElementById("modalTitle").innerText = isLocked 
+      
+      const titleText = isLocked 
         ? i18n[currentLang].unrevealedTitle 
         : (currentLang === "pl" ? chad.titlePl : chad.titleEn);
-      document.getElementById("modalDesc").innerText = isLocked 
+
+      document.getElementById("modalTitle").innerText = titleText;
+      
+      const desc = isLocked 
         ? i18n[currentLang].unrevealedDesc 
         : (currentLang === "pl" ? chad.descPl : chad.descEn);
+        
+      document.getElementById("modalDesc").innerText = desc || "";
     }
 
     function getStoredVoteKey(id) {
       return "chad_vote_" + getWeekIdentifier() + "_" + id;
     }
 
+    function getStoredVotes(id) {
+      return parseInt(localStorage.getItem(getStoredVoteKey(id)) || "0", 10);
+    }
+
     function updateVoteButtonState(id) {
       const btn = document.getElementById("btnVote");
-      const chad = chadsData.find(c => c.id === id);
+      const chad = chadsData.find(function(c) { return c.id === id; });
 
       if (!chad || chad.locked) {
         btn.style.display = "none";
@@ -1741,19 +1620,34 @@
       }
 
       btn.style.display = "inline-flex";
-      const hasVoted = parseInt(localStorage.getItem(getStoredVoteKey(id)) || "0", 10) > 0;
-      btn.classList.toggle("voted", hasVoted);
-      document.getElementById("txt-vote").innerText = hasVoted ? i18n[currentLang].btnVoted : i18n[currentLang].btnVote;
+      const hasVoted = getStoredVotes(id) > 0;
+      
+      if (hasVoted) {
+        btn.classList.add("voted");
+        document.getElementById("txt-vote").innerText = i18n[currentLang].btnVoted;
+      } else {
+        btn.classList.remove("voted");
+        document.getElementById("txt-vote").innerText = i18n[currentLang].btnVote;
+      }
     }
 
     function castVote() {
       if (!activeChadId) return;
-      const chad = chadsData.find(c => c.id === activeChadId);
+      const chad = chadsData.find(function(c) { return c.id === activeChadId; });
+      
       if (!chad || chad.locked) return;
 
-      if (parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10) === 0) {
+      const hasVoted = getStoredVotes(activeChadId) > 0;
+      
+      if (!hasVoted) {
         localStorage.setItem(getStoredVoteKey(activeChadId), "1");
-        db.ref('votes/' + activeChadId).transaction(c => (c || 0) + 1);
+        
+        if (db) {
+          db.ref('votes/' + activeChadId).transaction(function(currentVotes) {
+            return (currentVotes || 0) + 1;
+          });
+        }
+
         updateVoteButtonState(activeChadId);
       }
     }
@@ -1763,32 +1657,320 @@
       activeChadId = null;
     }
 
-    function updateCountdown() {
-      const timerElem = document.getElementById("timer-text");
-      if (!timerElem) return;
+    /* --- AUTH & SPOŁECZNOŚĆ LOGIKA --- */
+    function openAuthModal() { document.getElementById("authModal").style.display = "flex"; }
+    function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
 
-      const now = new Date();
-      const nextUpdate = new Date();
-      const daysUntilSunday = (7 - now.getDay()) % 7;
-      nextUpdate.setDate(now.getDate() + daysUntilSunday);
-      nextUpdate.setHours(23, 59, 59, 0);
-
-      const diff = nextUpdate - now;
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      timerElem.innerText = i18n[currentLang].timerPrefix + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+    function handleAuthAction() {
+      if (currentUser) {
+        auth.signOut();
+      } else {
+        openAuthModal();
+      }
     }
 
-    /* INICJALIZACJA */
+    function handleLogin() {
+      const email = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
+      if (!email || !pass) return alert("Wypełnij e-mail i hasło!");
+
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(() => closeAuthModal())
+        .catch(err => alert("Błąd logowania: " + err.message));
+    }
+
+    function handleRegister() {
+      const nick = document.getElementById("authUsername").value;
+      const email = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
+      if (!nick || !email || !pass) return alert("Wypełnij wszystkie pola!");
+
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then((res) => {
+          return res.user.updateProfile({ displayName: nick });
+        })
+        .then(() => closeAuthModal())
+        .catch(err => alert("Błąd rejestracji: " + err.message));
+    }
+
+    function updateAuthUI() {
+      const statusElem = document.getElementById("userAuthStatus");
+      const btnElem = document.getElementById("btnAuthAction");
+      const overlayElem = document.getElementById("postLockOverlay");
+
+      if (currentUser) {
+        statusElem.innerText = i18n[currentLang].statusLoggedIn + (currentUser.displayName || currentUser.email);
+        btnElem.innerText = i18n[currentLang].btnAuthLogout;
+        if (overlayElem) overlayElem.style.display = "none";
+      } else {
+        statusElem.innerText = i18n[currentLang].statusLoggedOut;
+        btnElem.innerText = i18n[currentLang].btnAuthLogin;
+        if (overlayElem) overlayElem.style.display = "flex";
+      }
+    }
+
+    function updateFileName(input, targetId) {
+      const target = document.getElementById(targetId);
+      if (input.files && input.files[0]) {
+        target.innerText = input.files[0].name;
+      } else {
+        target.innerText = "";
+      }
+    }
+
+    async function uploadToImgBB(file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("https://api.imgbb.com/1/upload?key=" + IMGBB_API_KEY, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        return data.data.url;
+      } else {
+        throw new Error("Błąd przesyłania zdjęcia.");
+      }
+    }
+
+    async function createPost() {
+      if (!currentUser) return openAuthModal();
+      const text = document.getElementById("postInput").value.trim();
+      const fileInput = document.getElementById("postImage");
+      
+      if (!text && (!fileInput.files || !fileInput.files[0])) {
+        return alert("Napisz coś lub dodaj zdjęcie!");
+      }
+
+      let imageUrl = "";
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          imageUrl = await uploadToImgBB(fileInput.files[0]);
+        } catch (e) {
+          return alert("Nie udało się przesłać obrazu.");
+        }
+      }
+
+      const postData = {
+        author: currentUser.displayName || "Anonim",
+        authorEmail: currentUser.email,
+        text: text,
+        imageUrl: imageUrl,
+        timestamp: Date.now()
+      };
+
+      db.ref("posts").push(postData);
+      document.getElementById("postInput").value = "";
+      fileInput.value = "";
+      document.getElementById("postImageName").innerText = "";
+    }
+
+    function addComment(postId) {
+      if (!currentUser) return openAuthModal();
+      const input = document.getElementById("comment-input-" + postId);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const commentData = {
+        author: currentUser.displayName || "Anonim",
+        authorEmail: currentUser.email,
+        text: text,
+        timestamp: Date.now()
+      };
+
+      db.ref("posts/" + postId + "/comments").push(commentData);
+      input.value = "";
+    }
+
+    function deletePost(postId) {
+      if (confirm("Czy na pewno usunąć ten wpis?")) {
+        db.ref("posts/" + postId).remove();
+      }
+    }
+
+    function deleteComment(postId, commentId) {
+      if (confirm("Czy na pewno usunąć ten komentarz?")) {
+        db.ref("posts/" + postId + "/comments/" + commentId).remove();
+      }
+    }
+
+    async function translateText(elementId, text, targetLang) {
+      const box = document.getElementById(elementId);
+      if (!box) return;
+
+      if (box.style.display === "block") {
+        box.style.display = "none";
+        return;
+      }
+
+      box.innerText = "Tłumaczenie...";
+      box.style.display = "block";
+
+      try {
+        const langPair = targetLang === "en" ? "autodetect|en" : "autodetect|pl";
+        const res = await fetch("https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + langPair);
+        const data = await res.json();
+        if (data && data.responseData) {
+          box.innerText = data.responseData.translatedText;
+        } else {
+          box.innerText = "Błąd tłumaczenia.";
+        }
+      } catch (e) {
+        box.innerText = "Błąd połączenia z tłumaczem.";
+      }
+    }
+
+    function listenPosts() {
+      if (!db) return;
+      db.ref("posts").on("value", snapshot => {
+        const container = document.getElementById("postsContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const data = snapshot.val();
+        if (!data) return;
+
+        const postsArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        postsArray.sort((a, b) => b.timestamp - a.timestamp);
+
+        postsArray.forEach(post => {
+          const postDiv = document.createElement("div");
+          postDiv.className = "post-item";
+
+          const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+          const deletePostBtn = isAdmin 
+            ? '<button class="delete-btn-admin" onclick="deletePost(\'' + post.id + '\')">Usuń</button>' 
+            : '';
+
+          const postImgHTML = post.imageUrl 
+            ? '<img src="' + post.imageUrl + '" class="post-img" alt="Post photo">' 
+            : '';
+
+          let commentsHTML = '';
+          if (post.comments) {
+            const commentsArray = Object.keys(post.comments).map(ckey => ({ id: ckey, ...post.comments[ckey] }));
+            commentsArray.sort((a, b) => a.timestamp - b.timestamp);
+
+            commentsArray.forEach(c => {
+              const deleteCommentBtn = isAdmin 
+                ? '<button class="delete-btn-admin" onclick="deleteComment(\'' + post.id + '\', \'' + c.id + '\')">Usunięto</button>' 
+                : '';
+
+              const commentTransId = "trans-comm-" + c.id;
+              const safeCommentText = c.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+              commentsHTML += 
+                '<div class="comment-item">' +
+                  '<div class="comment-header">' +
+                    '<span class="comment-author">' + c.author + deleteCommentBtn + '</span>' +
+                    '<span class="comment-time">' + new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
+                  '</div>' +
+                  '<div class="comment-text">' + c.text + '</div>' +
+                  '<button class="translate-btn" onclick="translateText(\'' + commentTransId + '\', \'' + safeCommentText + '\', \'' + currentLang + '\')">' + i18n[currentLang].translateBtn + '</button>' +
+                  '<div class="translated-box" id="' + commentTransId + '"></div>' +
+                '</div>';
+            });
+          }
+
+          const postTransId = "trans-post-" + post.id;
+          const safePostText = post.text ? post.text.replace(/'/g, "\\'").replace(/"/g, '&quot;') : "";
+
+          postDiv.innerHTML = 
+            '<div class="post-header">' +
+              '<span class="post-author">' + post.author + deletePostBtn + '</span>' +
+              '<span class="post-time">' + new Date(post.timestamp).toLocaleString() + '</span>' +
+            '</div>' +
+            (post.text ? '<div class="post-body">' + post.text + '</div>' : '') +
+            (safePostText ? '<button class="translate-btn" onclick="translateText(\'' + postTransId + '\', \'' + safePostText + '\', \'' + currentLang + '\')">' + i18n[currentLang].translateBtn + '</button>' : '') +
+            '<div class="translated-box" id="' + postTransId + '"></div>' +
+            postImgHTML +
+            '<div class="comments-section">' +
+              commentsHTML +
+              '<div class="comment-input-box">' +
+                '<input type="text" class="comment-input" id="comment-input-' + post.id + '" placeholder="' + i18n[currentLang].commentPlaceholder + '">' +
+                '<button class="auth-btn-small" style="align-self: flex-end;" onclick="addComment(\'' + post.id + '\')">' + i18n[currentLang].commentBtn + '</button>' +
+              '</div>' +
+            '</div>';
+
+          container.appendChild(postDiv);
+        });
+      });
+    }
+
     setupPollUI();
     renderRankings();
     renderHallOfFame();
-    updateAuthUI();
     updateCountdown();
     setInterval(updateCountdown, 1000);
+
+    try {
+      if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        auth = firebase.auth();
+
+        auth.onAuthStateChanged(user => {
+          currentUser = user;
+          updateAuthUI();
+        });
+
+        listenPosts();
+
+        db.ref('unlocked_ids').on('value', function(snapshot) {
+          const unlockedIds = snapshot.val() || [];
+          chadsData.forEach(function(chad) {
+            if (unlockedIds.includes(chad.id)) {
+              chad.locked = false;
+            }
+          });
+          renderRankings();
+          updatePollUI();
+        });
+
+        db.ref('votes').on('value', function(snapshot) {
+          currentVotesCache = snapshot.val() || {};
+          
+          chadsData.forEach(function(chad) {
+            chad.votes = currentVotesCache[chad.id] || 0;
+          });
+
+          updatePollVotesCount();
+          updatePollUI();
+
+          if (activeChadId !== null) {
+            const activeChad = chadsData.find(function(c) { return c.id === activeChadId; });
+            if (activeChad) {
+              document.getElementById("modalStatVotes").innerText = activeChad.votes;
+            }
+          }
+        });
+
+        db.ref('last_reset_week').on('value', function(snapshot) {
+          serverLastResetWeek = snapshot.val();
+          const currentWeekId = getWeekIdentifier();
+
+          if (!serverLastResetWeek) {
+            db.ref('last_reset_week').set(currentWeekId);
+            serverLastResetWeek = currentWeekId;
+          } else if (serverLastResetWeek !== currentWeekId) {
+            triggerWeeklyReset();
+          }
+        });
+
+        db.ref('published_order').on('value', function(snapshot) {
+          const publishedOrder = snapshot.val();
+          if (publishedOrder && Array.isArray(publishedOrder)) {
+            applyPublishedOrder(publishedOrder);
+          } else {
+            const defaultOrder = chadsData.map(function(c) { return c.id; });
+            db.ref('published_order').set(defaultOrder);
+          }
+        });
+      }
+    } catch (e) {
+      console.log("Firebase status: offline/blocked");
+    }
   </script>
 </body>
 </html>
