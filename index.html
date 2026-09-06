@@ -212,6 +212,13 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(168, 85, 247, 0.15);
     }
 
+    .poll-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
     .poll-badge {
       display: flex;
       align-items: center;
@@ -221,6 +228,16 @@
       color: var(--purple-light);
       letter-spacing: 0.8px;
       text-transform: uppercase;
+    }
+
+    .poll-total-votes {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--subtext);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .poll-title {
@@ -498,7 +515,7 @@
       transition: color 0.2s ease;
     }
 
-    /* SEKCJA HALL OF FAME - PRZYWRÓCONY ZŁOTY AKCENT */
+    /* SEKCJA HALL OF FAME */
     .hof-section {
       display: flex;
       flex-direction: column;
@@ -732,9 +749,12 @@
 
       <!-- Community Poll -->
       <section class="poll-card">
-        <div class="poll-badge">
-          <span>📊</span>
-          <span id="txt-poll-badge">ANKIETA SPOŁECZNA</span>
+        <div class="poll-header-row">
+          <div class="poll-badge">
+            <span>📊</span>
+            <span id="txt-poll-badge">ANKIETA SPOŁECZNA</span>
+          </div>
+          <div class="poll-total-votes" id="txt-poll-total">Łącznie głosów: 0</div>
         </div>
         <h2 class="poll-title" id="txt-poll-title">Kto powinien zająć miejsce #1?</h2>
 
@@ -760,7 +780,7 @@
       <!-- Główny ranking -->
       <section class="rankings-list" id="rankings"></section>
 
-      <!-- Sekcja Hall of Fame z odzyskanym złotym wykończeniem -->
+      <!-- Sekcja Hall of Fame -->
       <section class="hof-section">
         <div class="hof-header">
           <h2 class="hof-title" id="txt-hof-title">👑 Sala Sław</h2>
@@ -889,6 +909,7 @@
         pollBtnVote: "Zagłosuj",
         pollBtnVoted: "Oddano głos w tej ankiecie",
         pollBtnEnded: "Ankieta zakończona",
+        pollTotalVotes: "Łącznie głosów: ",
         hofTitle: "👑 Sala Sław",
         hofSub: "Legendy wycofane z aktywnego rankingu.",
         legendBadge: "Legenda",
@@ -910,6 +931,7 @@
         pollBtnVote: "Vote",
         pollBtnVoted: "You have already voted on this poll",
         pollBtnEnded: "Poll Ended",
+        pollTotalVotes: "Total votes: ",
         hofTitle: "👑 Hall of Fame",
         hofSub: "Legends who have been retired from the active rankings.",
         legendBadge: "Legend",
@@ -1012,27 +1034,87 @@
       });
     }
 
-    function setupPollUI() {
+    function updatePollUI() {
       const c1 = chadsData.find(c => c.id === pollConfig.candidate1Id);
       const c2 = chadsData.find(c => c.id === pollConfig.candidate2Id);
 
-      if (c1) {
-        document.getElementById("poll-name-1").innerText = c1.name;
-        const img1 = document.getElementById("poll-avatar-1");
-        if (c1.img) {
-          img1.innerHTML = '<img src="' + c1.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
-        }
+      const name1 = c1 ? c1.name : "Luka";
+      const name2 = c2 ? c2.name : "Ten od Midasa";
+
+      if (c1 && c1.img) {
+        document.getElementById("poll-avatar-1").innerHTML = '<img src="' + c1.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+      }
+      if (c2 && c2.img) {
+        document.getElementById("poll-avatar-2").innerHTML = '<img src="' + c2.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
       }
 
-      if (c2) {
-        document.getElementById("poll-name-2").innerText = c2.name;
-        const img2 = document.getElementById("poll-avatar-2");
-        if (c2.img) {
-          img2.innerHTML = '<img src="' + c2.img + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
-        }
+      const v1 = currentVotesCache[pollConfig.candidate1Id] || 0;
+      const v2 = currentVotesCache[pollConfig.candidate2Id] || 0;
+      const total = v1 + v2;
+
+      // Obliczanie i aktualizacja łącznej liczby głosów w ankiecie
+      const totalElem = document.getElementById("txt-poll-total");
+      if (totalElem) {
+        totalElem.innerText = i18n[currentLang].pollTotalVotes + total;
       }
 
-      updatePollButtonState();
+      const weekKey = getWeekIdentifier();
+      const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
+      const savedChoice = localStorage.getItem("poll_voted_choice_" + weekKey);
+
+      const opt1 = document.getElementById("poll-opt-1");
+      const opt2 = document.getElementById("poll-opt-2");
+      const btn = document.getElementById("btnPollVote");
+
+      opt1.classList.remove("selected", "voted", "winner");
+      opt2.classList.remove("selected", "voted", "winner");
+
+      if (pollIsEnded) {
+        const p1 = total > 0 ? Math.round((v1 / total) * 100) : 50;
+        const p2 = total > 0 ? (100 - p1) : 50;
+
+        document.getElementById("poll-name-1").innerText = name1 + " (" + p1 + "%)";
+        document.getElementById("poll-name-2").innerText = name2 + " (" + p2 + "%)";
+
+        if (v1 >= v2) {
+          opt1.classList.add("winner");
+        } else {
+          opt2.classList.add("winner");
+        }
+
+        btn.disabled = true;
+        btn.classList.add("voted");
+        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnEnded;
+      } else if (hasVoted) {
+        const p1 = total > 0 ? Math.round((v1 / total) * 100) : 0;
+        const p2 = total > 0 ? (100 - p1) : 0;
+
+        document.getElementById("poll-name-1").innerText = name1 + " (" + p1 + "%)";
+        document.getElementById("poll-name-2").innerText = name2 + " (" + p2 + "%)";
+
+        if (savedChoice === pollConfig.candidate1Id) {
+          opt1.classList.add("voted");
+        } else if (savedChoice === pollConfig.candidate2Id) {
+          opt2.classList.add("voted");
+        }
+
+        btn.disabled = true;
+        btn.classList.add("voted");
+        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVoted;
+      } else {
+        document.getElementById("poll-name-1").innerText = name1;
+        document.getElementById("poll-name-2").innerText = name2;
+
+        if (selectedPollCandidateId === pollConfig.candidate1Id) {
+          opt1.classList.add("selected");
+        } else if (selectedPollCandidateId === pollConfig.candidate2Id) {
+          opt2.classList.add("selected");
+        }
+
+        btn.disabled = !selectedPollCandidateId;
+        btn.classList.remove("voted");
+        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVote;
+      }
     }
 
     function selectPollOption(candidateId) {
@@ -1042,74 +1124,7 @@
       if (hasVoted) return;
 
       selectedPollCandidateId = candidateId;
-      document.getElementById("poll-opt-1").classList.toggle("selected", candidateId === pollConfig.candidate1Id);
-      document.getElementById("poll-opt-2").classList.toggle("selected", candidateId === pollConfig.candidate2Id);
-    }
-
-    function renderPollResults() {
-      const v1 = currentVotesCache[pollConfig.candidate1Id] || 0;
-      const v2 = currentVotesCache[pollConfig.candidate2Id] || 0;
-      const total = v1 + v2;
-
-      const p1 = total > 0 ? Math.round((v1 / total) * 100) : 50;
-      const p2 = total > 0 ? (100 - p1) : 50;
-
-      const c1 = chadsData.find(c => c.id === pollConfig.candidate1Id);
-      const c2 = chadsData.find(c => c.id === pollConfig.candidate2Id);
-
-      document.getElementById("poll-name-1").innerText = (c1 ? c1.name : "Luka") + " (" + p1 + "%)";
-      document.getElementById("poll-name-2").innerText = (c2 ? c2.name : "Ten od Midasa") + " (" + p2 + "%)";
-
-      const opt1 = document.getElementById("poll-opt-1");
-      const opt2 = document.getElementById("poll-opt-2");
-
-      opt1.classList.remove("selected", "voted", "winner");
-      opt2.classList.remove("selected", "voted", "winner");
-
-      if (v1 >= v2) {
-        opt1.classList.add("winner");
-      } else {
-        opt2.classList.add("winner");
-      }
-
-      const btn = document.getElementById("btnPollVote");
-      btn.disabled = true;
-      btn.classList.add("voted");
-      document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnEnded;
-    }
-
-    function updatePollButtonState() {
-      if (pollIsEnded) {
-        renderPollResults();
-        return;
-      }
-
-      const btn = document.getElementById("btnPollVote");
-      const weekKey = getWeekIdentifier();
-      const hasVoted = localStorage.getItem("poll_voted_" + weekKey) === "1";
-      const savedChoice = localStorage.getItem("poll_voted_choice_" + weekKey);
-
-      const opt1 = document.getElementById("poll-opt-1");
-      const opt2 = document.getElementById("poll-opt-2");
-
-      opt1.classList.remove("selected", "voted", "winner");
-      opt2.classList.remove("selected", "voted", "winner");
-
-      if (hasVoted && savedChoice) {
-        if (savedChoice === pollConfig.candidate1Id) opt1.classList.add("voted");
-        else if (savedChoice === pollConfig.candidate2Id) opt2.classList.add("voted");
-
-        btn.disabled = true;
-        btn.classList.add("voted");
-        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVoted;
-      } else {
-        if (selectedPollCandidateId === pollConfig.candidate1Id) opt1.classList.add("selected");
-        if (selectedPollCandidateId === pollConfig.candidate2Id) opt2.classList.add("selected");
-        
-        btn.disabled = !selectedPollCandidateId;
-        btn.classList.remove("voted");
-        document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVote;
-      }
+      updatePollUI();
     }
 
     function castPollVote() {
@@ -1128,7 +1143,7 @@
           });
         }
 
-        updatePollButtonState();
+        updatePollUI();
       }
     }
 
@@ -1174,7 +1189,7 @@
       applyPublishedOrder(newOrder);
 
       pollIsEnded = true;
-      renderPollResults();
+      updatePollUI();
 
       if (db) {
         db.ref().update({
@@ -1230,7 +1245,7 @@
       document.getElementById("txt-poll-badge").innerText = i18n[lang].pollBadge;
       document.getElementById("txt-tab-rankings").innerText = i18n[lang].tabRankings;
 
-      setupPollUI();
+      updatePollUI();
       renderRankings();
       renderHallOfFame();
 
@@ -1337,7 +1352,7 @@
       activeChadId = null;
     }
 
-    setupPollUI();
+    updatePollUI();
     renderRankings();
     renderHallOfFame();
     updateCountdown();
@@ -1355,9 +1370,7 @@
             chad.votes = currentVotesCache[chad.id] || 0;
           });
 
-          if (pollIsEnded) {
-            renderPollResults();
-          }
+          updatePollUI();
 
           if (activeChadId !== null) {
             const activeChad = chadsData.find(function(c) { return c.id === activeChadId; });
