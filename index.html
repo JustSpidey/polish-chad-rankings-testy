@@ -794,7 +794,7 @@
             <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
           </div>
           <p class="news-description txt-news-desc">
-            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.",
+            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca."
           </p>
         </div>
 
@@ -824,7 +824,7 @@
             <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
           </div>
           <p class="news-description txt-news-desc">
-            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.",
+            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca."
           </p>
         </div>
 
@@ -925,13 +925,20 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+const db = firebase.database();
+const auth = firebase.auth();
 
+// Automatyczne wykrywanie sesji zalogowanego użytkownika
+auth.onAuthStateChanged((user) => {
+  currentUser = user;
+  updateAuthUI();
+  renderPosts();
+});
+    
     const pollConfig = {
       targetRank: 1,
       candidate1Id: "chad_1",
-      candidate2Id: "chad_2"
+      candidate2Id: "chad_2",
       active: false // false = Ankieta Zakończona
     };
 
@@ -1266,11 +1273,19 @@ const archivedPollVotes = {
     }
 
     function selectPollOption(candidateId) {
-      const weekKey = getWeekIdentifier();
-      if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
-      selectedPollCandidateId = candidateId;
-      updatePollUI();
+  // Blokada, jeśli ankieta jest zakończona
+  if (!pollConfig.active) {
+    alert("Ankieta została zakończona.");
+    return;
+  }
+
+  const weekKey = getWeekIdentifier();
+  if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
+
+  selectedPollCandidateId = candidateId;
+  updatePollUI();
     }
+    
 
     function updatePollVotesCount() {
   // Pobieramy głosy z bazy lub ze stałych wyników archiwum
@@ -1356,14 +1371,6 @@ const archivedPollVotes = {
     btn.disabled = !selectedPollCandidateId;
     document.getElementById("txt-poll-btn").innerText = i18n[currentLang].pollBtnVote;
   }
-}
-
-function selectPollOption(candidateId) {
-  if (!pollConfig.active) return; // Zablokowanie wyboru w 2. tygodniu
-  const weekKey = getWeekIdentifier();
-  if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
-  selectedPollCandidateId = candidateId;
-  updatePollUI();
 }
 
 function castPollVote() {
@@ -1850,7 +1857,7 @@ function castPollVote() {
       if (parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10) === 0) {
         localStorage.setItem(getStoredVoteKey(activeChadId), "1");
         const weekKey = getWeekIdentifier(); // np. "2026-W37" lub "week_2"
-        db.ref('votes/' + weekKey + '/' + selectedCandidateId).transaction(function(c) {
+        db.ref('votes/' + weekKey + '/' + activeChadId).transaction(function(c) {
           return (c || 0) + 1; 
         });
         
