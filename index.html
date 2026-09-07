@@ -937,6 +937,13 @@
     const ADMIN_EMAIL = "kplatek.2020@gmail.com";
     const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
 
+    // Lista e-maili z uprawnieniami CHAD
+    const CHAD_EMAILS = [
+      "luka@gmail.com",
+      "midas@gmail.com",
+      "przyklad@domain.com"
+    ];
+
     const firebaseConfig = {
       apiKey: "AIzaSyCJDcay4pyauLgGQLloTrf1kp2GjXoQmTA",
       authDomain: "polish-chad-rankings.firebaseapp.com",
@@ -1454,14 +1461,9 @@ function castPollVote() {
     }
 
 // Sprawdza, czy nazwa autora zgadza się z kimś z listy chadsData
-    function isAuthorChad(authorName) {
-      if (!authorName) return false;
-      return chadsData.some(chad => chad.name.toLowerCase() === authorName.trim().toLowerCase());
-    }
-
-    function isAuthorChad(authorName) {
-      if (!authorName) return false;
-      return chadsData.some(chad => chad.name.toLowerCase() === authorName.toLowerCase());
+    function isChadEmail(email) {
+  if (!email) return false;
+  return CHAD_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase());
     }
     
     function getChadBadgeHTML() {
@@ -1668,7 +1670,7 @@ function deleteComment(postId, commentId) {
     const canDeletePost = isAdmin || isOwner;
 
     const isPostAuthorAdmin = post.userEmail === ADMIN_EMAIL;
-    const isPostAuthorChad = !isPostAuthorAdmin && isAuthorChad(post.author);
+    const isPostAuthorChad = !isPostAuthorAdmin && isChadEmail(post.userEmail);
 
     let authorBadge = '';
     if (isPostAuthorAdmin) {
@@ -1697,7 +1699,7 @@ function deleteComment(postId, commentId) {
         // Logika autorstwa i odznak dla komentarza
         const canDeleteComm = isAdmin || (currentUser && (currentUser.uid === c.uid || currentUser.email === c.userEmail));
         const isCommAuthorAdmin = c.userEmail === ADMIN_EMAIL;
-        const isCommAuthorChad = !isCommAuthorAdmin && isAuthorChad(c.author);
+        const isCommAuthorChad = !isCommAuthorAdmin && isChadEmail(c.userEmail);
 
         let commAuthorBadge = '';
         if (isCommAuthorAdmin) {
