@@ -1290,7 +1290,7 @@ const archivedPollVotes = {
 
   const subElem = document.getElementById("txt-poll-sub");
   if (!pollConfig.active) {
-    subElem.innerText = total + (currentLang === "pl" ? " oddanych głosów • Ankieta zakończona (Tydzień 2)" : " votes cast • Poll closed (Week 2)");
+    subElem.innerText = total + (currentLang === "pl" ? " oddanych głosów • Ankieta zakończona " : " votes cast • Poll closed ");
   } else {
     subElem.innerText = total + i18n[currentLang].pollVotesSub;
   }
