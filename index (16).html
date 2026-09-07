@@ -1660,13 +1660,65 @@
       renderPosts();
     });
 
-    db.ref('votes').on('value', function(snapshot) {
-      currentVotesCache = snapshot.val() || {};
-      chadsData.forEach(chad => { chad.votes = currentVotesCache[chad.id] || 0; });
+        // Główny słuchacz Firebase – obsługa pozycji, głosów i automatycznego resetu cotygodniowego
+    db.ref().on('value', function(snapshot) {
+      const data = snapshot.val() || {};
+      const storedWeek = data.currentWeek;
+      const thisWeek = getWeekIdentifier();
+      const votes = data.votes || {};
+      const savedRankings = data.rankings || null;
+
+      // 1. Przypisujemy aktualne głosy z bazy do obiektów
+      chadsData.forEach(chad => {
+        chad.votes = votes[chad.id] || 0;
+      });
+
+      // 2. Jeśli w bazie zapisano pozycje z poprzedniego tygodnia, wczytujemy je
+      if (savedRankings) {
+        chadsData.forEach(chad => {
+          if (savedRankings[chad.id] !== undefined) {
+            chad.rank = savedRankings[chad.id];
+          }
+        });
+        // Sortujemy tablicę według rang, aby zachować stałą kolejność wyświetlania
+        chadsData.sort((a, b) => a.rank - b.rank);
+      }
+
+      // 3. Sprawdzamy czy minął tydzień i należy zaktualizować ranking oraz wyzerować głosy
+      if (storedWeek && storedWeek !== thisWeek) {
+        performWeeklyReset(thisWeek);
+        return;
+      } else if (!storedWeek) {
+        db.ref('currentWeek').set(thisWeek);
+      }
+
+      currentVotesCache = votes;
       updatePollVotesCount();
       updatePollUI();
+      renderRankings();
     });
 
+    // Funkcja sortująca osoby wg głosów, ustalająca nowe miejsca (1-15) i zerująca głosy
+    function performWeeklyReset(newWeekKey) {
+      // Sortowanie osób malejąco po liczbie zgromadzonych głosów (najwięcej głosów -> #1)
+      chadsData.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+
+      const newRankings = {};
+      chadsData.forEach((chad, index) => {
+        chad.rank = index + 1; // Przypisanie nowego miejsca 1..15
+        newRankings[chad.id] = chad.rank;
+      });
+
+      // Aktualizacja bazy Firebase: ustawiamy nowy tydzień, nowe pozycje i kasujemy głosy
+      db.ref().update({
+        currentWeek: newWeekKey,
+        rankings: newRankings,
+        votes: null // zerowanie głosów
+      }).then(() => {
+        renderRankings();
+      });
+    }
+    
     function setLanguage(lang) {
       currentLang = lang;
       document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
@@ -1783,7 +1835,7 @@
       activeChadId = null;
     }
 
-    function updateCountdown() {
+        function updateCountdown() {
       const timerElem = document.getElementById("timer-text");
       if (!timerElem) return;
 
@@ -1793,15 +1845,23 @@
       nextUpdate.setDate(now.getDate() + daysUntilSunday);
       nextUpdate.setHours(23, 59, 59, 0);
 
-      const diff = nextUpdate - now;
+      let diff = nextUpdate - now;
+
+      // Jeśli licznik właśnie wyzerował się na żywo na ekranie użytkownika:
+      if (diff <= 0) {
+        const thisWeek = getWeekIdentifier();
+        performWeeklyReset(thisWeek);
+        diff = 0;
+      }
+
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
 
       timerElem.innerText = i18n[currentLang].timerPrefix + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
-    }
-
+        }
+    
     setupPollUI();
     renderRankings();
     renderHallOfFame();
