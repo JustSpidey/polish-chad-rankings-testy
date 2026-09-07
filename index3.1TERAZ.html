@@ -524,6 +524,14 @@
     .hof-desc { font-size: 0.8rem; color: var(--subtext); margin-top: 6px; line-height: 1.4; }
 
     /* Społeczność */
+    .owner-badge {
+  color: #2563eb; /* Ładny, czytelny odcień niebieskiego */
+  font-weight: bold;
+  font-size: 0.85em;
+  margin-left: 6px;
+  display: inline-block;
+    }
+    
     .user-auth-bar {
       background: #100d1a; border: 1px solid rgba(168, 85, 247, 0.25);
       border-radius: 14px; padding: 12px 16px; display: flex;
@@ -1426,6 +1434,15 @@ function castPollVote() {
 
     function openAuthModal() { document.getElementById("authModal").style.display = "flex"; }
     function closeAuthModal() { document.getElementById("authModal").style.display = "none"; }
+
+    function getOwnerBadgeHTML() {
+  // Zakładamy, że masz w kodzie zmienną przechowującą język, np. currentLang ('pl' lub 'en')
+  const isPl = typeof currentLang !== 'undefined' && currentLang === 'pl';
+  const label = isPl ? '[WŁAŚCICIEL]' : '[OWNER]';
+  
+  return `<span class="owner-badge">${label}</span>`;
+    }
+    
 
     function handleLogin() {
       const email = document.getElementById("authEmail").value.trim();
