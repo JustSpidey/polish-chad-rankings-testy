@@ -1639,6 +1639,9 @@ function castPollVote() {
         const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
         const isOwner = currentUser && currentUser.uid === post.uid;
         const canDeletePost = isAdmin || isOwner;
+        const isPostAuthorAdmin = post.userEmail === ADMIN_EMAIL;
+        const authorBadge = isPostAuthorAdmin ? getOwnerBadgeHTML() : '';
+        
 
         const deletePostBtn = canDeletePost 
           ? `<button class="delete-btn-admin" onclick="deletePost('${post.id}')">${i18n[currentLang].deleteBtn}</button>` 
@@ -1659,6 +1662,8 @@ function castPollVote() {
             const canDeleteComm = isAdmin || (currentUser && currentUser.uid === c.uid);
             const delCommBtn = canDeleteComm 
               ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
+            const isCommAuthorAdmin = c.userEmail === ADMIN_EMAIL;
+            const commAuthorBadge = isCommAuthorAdmin ? getOwnerBadgeHTML() : '';
               : '';
             const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img" alt="Comment image">` : '';
             const safeCommText = c.text ? c.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
@@ -1666,7 +1671,7 @@ function castPollVote() {
             commentsHTML += `
               <div class="comment-item">
                 <div class="comment-header">
-                  <span class="comment-author">${c.author} ${delCommBtn}</span>
+                  <span class="comment-author">${c.author}${commAuthorBadge} ${delCommBtn}</span>
                   <span class="comment-time">${new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                 </div>
                 ${c.text ? `<div class="comment-text">${c.text}</div>` : ''}
@@ -1699,7 +1704,7 @@ function castPollVote() {
         postDiv.className = "post-item";
         postDiv.innerHTML = `
           <div class="post-header">
-            <span class="post-author">${post.author} ${deletePostBtn}</span>
+            <span class="post-author">${post.author}${authorBadge}${deletePostBtn}</span>
             <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
           </div>
           ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
