@@ -1784,30 +1784,102 @@
     }
 
     function updateCountdown() {
-      const timerElem = document.getElementById("timer-text");
-      if (!timerElem) return;
+    const now = new Date();
+    
+    // Ustalanie niedzieli 23:59:59
+    const endOfWeek = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Niedziela
+    const distanceToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+    
+    endOfWeek.setDate(now.getDate() + distanceToSunday);
+    endOfWeek.setHours(23, 59, 59, 999);
 
-      const now = new Date();
-      const nextUpdate = new Date();
-      const daysUntilSunday = (7 - now.getDay()) % 7;
-      nextUpdate.setDate(now.getDate() + daysUntilSunday);
-      nextUpdate.setHours(23, 59, 59, 0);
+    const diff = endOfWeek - now;
 
-      const diff = nextUpdate - now;
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      timerElem.innerText = i18n[currentLang].timerPrefix + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+    // Gdy czas dobiegnie końca
+    if (diff <= 0) {
+        checkAndProcessWeeklyReset();
+        return;
     }
 
-    setupPollUI();
-    renderRankings();
-    renderHallOfFame();
-    updateAuthUI();
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    const timerElement = document.querySelector('#timer-text');
+    if (timerElement) {
+        timerElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+}
+
+// INICJALIZACJA SYSTEMU (Wklej na końcu pliku JS)
+checkAndProcessWeeklyReset();
+setupFirebaseListeners();
+setInterval(updateCountdown, 1000);
+updateCountdown();
+    
+
+    // Generator identyfikatora tygodnia (np. "2026-W37")
+function getSystemWeekIdentifier() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return `${d.getFullYear()}-W${weekNo}`;
+}
+
+// Funkcja wykonująca aktualizację rankingu i reset głosów
+function checkAndProcessWeeklyReset() {
+    const currentWeek = getSystemWeekIdentifier();
+
+    db.ref('system/currentWeek').once('value').then((snapshot) => {
+        const savedWeek = snapshot.val();
+
+        // Jeśli minął tydzień
+        if (savedWeek !== currentWeek) {
+            // Pobieramy zebrane głosy z całego minionego tygodnia
+            db.ref('votes').once('value').then((votesSnapshot) => {
+                const votesData = votesSnapshot.val() || {};
+                
+                // Zliczamy głosy z minionego tygodnia
+                const voteCounts = {};
+                Object.values(votesData).forEach(vote => {
+                    const chadId = (typeof vote === 'object' && vote !== null) ? vote.chadId : vote;
+                    if (chadId) {
+                        voteCounts[chadId] = (voteCounts[chadId] || 0) + 1;
+                    }
+                });
+
+                // Sortujemy osoby na podstawie głosów zebranych w minionym tygodniu
+                const sortedChads = [...chadsData].sort((a, b) => {
+                    const votesA = voteCounts[a.id] || 0;
+                    const votesB = voteCounts[b.id] || 0;
+                    return votesB - votesA; // malejąco
+                });
+
+                // Przypisujemy nowe oficjalne pozycje (1, 2, 3...)
+                const newRanks = {};
+                sortedChads.forEach((chad, index) => {
+                    newRanks[chad.id] = index + 1;
+                });
+
+                // Zapisujemy nowy ranking i zerujemy głosy w Firebase
+                const updates = {};
+                updates['rankings'] = newRanks;               // Nowy zamrożony ranking
+                updates['votes'] = null;                      // Wyczyszczenie głosów do 0
+                updates['system/currentWeek'] = currentWeek;  // Ustawienie aktualnego tygodnia
+
+                return db.ref().update(updates);
+            }).then(() => {
+                console.log("Koniec tygodnia: Ranking został przeliczony, a głosy wyzerowane!");
+            });
+        }
+    });
+}
+    
+    
   </script>
 </body>
 </html>
