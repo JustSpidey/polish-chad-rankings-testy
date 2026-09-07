@@ -1273,7 +1273,7 @@ const archivedPollVotes = {
     }
 
     function selectPollOption(candidateId) {
-  if (!pollConfig.active) return; // Usuwamy alert, skrypt po prostu po cichu przerywa pracę
+  if (!pollConfig.active) return;
 
   const weekKey = getWeekIdentifier();
   if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
@@ -1282,14 +1282,6 @@ const archivedPollVotes = {
   updatePollUI();
     }
     
-  const weekKey = getWeekIdentifier();
-  if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
-
-  selectedPollCandidateId = candidateId;
-  updatePollUI();
-    }
-    
-
     function updatePollVotesCount() {
   // Pobieramy głosy z bazy lub ze stałych wyników archiwum
   const v1 = currentVotesCache[pollConfig.candidate1Id] ?? archivedPollVotes[pollConfig.candidate1Id] ?? 0;
@@ -1860,7 +1852,7 @@ function castPollVote() {
       if (parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10) === 0) {
         localStorage.setItem(getStoredVoteKey(activeChadId), "1");
         const weekKey = getWeekIdentifier(); // np. "2026-W37" lub "week_2"
-        db.ref('votes/' + weekKey + '/' + activeChadId).transaction(function(c) {
+        db.ref('votes/' + activeChadId).transaction(function(c) {
           return (c || 0) + 1; 
         });
         
