@@ -363,6 +363,11 @@
       border: 1px solid rgba(255, 255, 255, 0.1) !important; box-shadow: none !important;
     }
 
+    .poll-disabled {
+  pointer-events: none; /* Blokuje kliknięcia i zmianę kursora */
+  opacity: 0.8;          /* Opcjonalnie: lekko przyciemnia opcje */
+    }
+
     /* --- WIDGET BREAKING NEWS --- */
     .breaking-news-card {
       background: linear-gradient(180deg, rgba(45, 12, 24, 0.6) 0%, rgba(20, 15, 29, 0.95) 100%);
@@ -1273,12 +1278,15 @@ const archivedPollVotes = {
     }
 
     function selectPollOption(candidateId) {
-  // Blokada, jeśli ankieta jest zakończona
-  if (!pollConfig.active) {
-    alert("Ankieta została zakończona.");
-    return;
-  }
+  if (!pollConfig.active) return; // Usuwamy alert, skrypt po prostu po cichu przerywa pracę
 
+  const weekKey = getWeekIdentifier();
+  if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
+
+  selectedPollCandidateId = candidateId;
+  updatePollUI();
+    }
+    
   const weekKey = getWeekIdentifier();
   if (localStorage.getItem("poll_voted_" + weekKey) === "1") return;
 
@@ -1319,8 +1327,12 @@ const archivedPollVotes = {
   if (total > 0) {
     pct1 = Math.round((v1 / total) * 100);
     pct2 = 100 - pct1;
-  }
 
+  // Pobieramy element ankiety i przełączamy klasę w zależności od pollConfig.active
+const pollContainer = document.querySelector('.poll-container'); // upewnij się, że taka klasa/ID istnieje w HTML
+if (pollContainer) {
+  pollContainer.classList.toggle('poll-disabled', !pollConfig.active);
+}
   // TRYB 2. TYGODNIA – Ankieta nieaktywna, zawsze pokazujemy wyniki i blokujemy głosowanie
   if (!pollConfig.active) {
     res1.style.display = "flex";
