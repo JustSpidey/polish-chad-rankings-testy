@@ -1849,7 +1849,11 @@ function castPollVote() {
 
       if (parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10) === 0) {
         localStorage.setItem(getStoredVoteKey(activeChadId), "1");
-        db.ref('votes/' + activeChadId).transaction(c => (c || 0) + 1);
+        const weekKey = getWeekIdentifier(); // np. "2026-W37" lub "week_2"
+        db.ref('votes/' + weekKey + '/' + selectedCandidateId).transaction(function(c) {
+          return (c || 0) + 1; 
+        });
+        
         updateVoteButtonState(activeChadId);
       }
     }
@@ -1867,7 +1871,7 @@ function castPollVote() {
       const nextUpdate = new Date();
       const daysUntilSunday = (7 - now.getDay()) % 7;
       nextUpdate.setDate(now.getDate() + daysUntilSunday);
-      nextUpdate.setHours(23, 59, 59, 0);
+      nextUpdate.setHours(23, 59, 59, 999);
 
       let diff = nextUpdate - now;
 
