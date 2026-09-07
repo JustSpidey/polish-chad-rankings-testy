@@ -1327,12 +1327,8 @@ const archivedPollVotes = {
   if (total > 0) {
     pct1 = Math.round((v1 / total) * 100);
     pct2 = 100 - pct1;
-
-  // Pobieramy element ankiety i przełączamy klasę w zależności od pollConfig.active
-const pollContainer = document.querySelector('.poll-container'); // upewnij się, że taka klasa/ID istnieje w HTML
-if (pollContainer) {
-  pollContainer.classList.toggle('poll-disabled', !pollConfig.active);
-}
+  }
+      
   // TRYB 2. TYGODNIA – Ankieta nieaktywna, zawsze pokazujemy wyniki i blokujemy głosowanie
   if (!pollConfig.active) {
     res1.style.display = "flex";
