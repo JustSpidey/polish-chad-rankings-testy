@@ -919,6 +919,13 @@
   </div>
 
   <script>
+    let currentLang = "pl";
+    let activeChadId = null;
+    let currentUser = null;
+    let currentVotesCache = {};
+    let selectedPollCandidateId = null;
+    let postsDataCache = {};
+    
     const ADMIN_EMAIL = "kplatek.2020@gmail.com";
     const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
 
@@ -1151,13 +1158,6 @@ const archivedPollVotes = {
         trendingNewsTitle: "🔥 Trending News"
       }
     };
-
-    let currentLang = "pl";
-    let activeChadId = null;
-    let currentUser = null;
-    let currentVotesCache = {};
-    let selectedPollCandidateId = null;
-    let postsDataCache = {};
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -1660,10 +1660,10 @@ function castPollVote() {
           Object.keys(post.comments).forEach(cId => {
             const c = post.comments[cId];
             const canDeleteComm = isAdmin || (currentUser && currentUser.uid === c.uid);
-            const delCommBtn = canDeleteComm 
-              ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
             const isCommAuthorAdmin = c.userEmail === ADMIN_EMAIL;
             const commAuthorBadge = isCommAuthorAdmin ? getOwnerBadgeHTML() : '';
+            const delCommBtn = canDeleteComm 
+              ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
               : '';
             const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img" alt="Comment image">` : '';
             const safeCommText = c.text ? c.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
