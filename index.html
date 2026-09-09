@@ -973,6 +973,7 @@
     let currentVotesCache = {};
     let selectedPollCandidateId = null;
     let postsDataCache = {};
+    let autoTransCache = {};
     
     const ADMIN_EMAIL = "kplatek.2020@gmail.com";
     const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
@@ -1799,7 +1800,7 @@ async function createNewsPost() {
   const title = titleInput ? titleInput.value.trim() : "";
   const text = textInput ? textInput.value.trim() : "";
   const overlay = overlayInput ? overlayInput.value.trim() : "";
-  const file = fileInput.files[0];
+  const file = (fileInput && fileInput.files) ? fileInput.files[0] : null;
 
   if (!title && !text && !file) return alert("Napisz treść, tytuł lub dodaj zdjęcie!");
 
