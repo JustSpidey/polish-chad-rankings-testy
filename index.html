@@ -1261,10 +1261,6 @@ const archivedPollVotes = {
       document.getElementById("view-community").classList.toggle("hidden", tabName !== 'community');
     }
 
-    const autoTransCache = {};
-
-// 1. Obsługa automatycznego tłumaczenia z zabezpieczeniem przed błędem API
-const autoTransCache = {};
 
 async function getAutoTranslation(text, targetLang) {
   if (!text) return "";
