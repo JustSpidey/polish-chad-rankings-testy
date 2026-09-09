@@ -1261,6 +1261,27 @@ const archivedPollVotes = {
       document.getElementById("view-community").classList.toggle("hidden", tabName !== 'community');
     }
 
+    const autoTransCache = {};
+
+async function getAutoTranslation(text, targetLang) {
+  if (!text) return "";
+  const key = targetLang + "_" + text;
+  if (autoTransCache[key]) return autoTransCache[key];
+
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${targetLang}`);
+    const data = await res.json();
+    if (data && data.responseData && data.responseData.translatedText) {
+      autoTransCache[key] = data.responseData.translatedText;
+      return data.responseData.translatedText;
+    }
+  } catch (e) {
+    console.error("Błąd tłumaczenia:", e);
+  }
+  return text; // Zwraca oryginał w przypadku błędu API
+}
+    
+
     function renderRankings() {
       const container = document.getElementById("rankings");
       if (!container) return;
@@ -1794,15 +1815,27 @@ async function publishBreakingNews() {
 }
 
 // Synchroniczne odczytywanie Breaking News oraz Newsów z Firebase
+let currentBreakingNewsData = null;
+
 db.ref('breakingNews').on('value', (snapshot) => {
-  const data = snapshot.val();
-  if (data) {
-    document.querySelectorAll('.bn-title-display').forEach(el => el.innerText = data.title);
-    document.querySelectorAll('.bn-desc-display').forEach(el => el.innerText = data.desc);
-    document.querySelectorAll('.bn-overlay-display').forEach(el => el.innerText = data.overlay);
-    document.querySelectorAll('.bn-img-display').forEach(el => el.src = data.imageUrl);
-  }
+  currentBreakingNewsData = snapshot.val();
+  updateBreakingNewsDisplay();
 });
+
+async function updateBreakingNewsDisplay() {
+  if (!currentBreakingNewsData) return;
+  const data = currentBreakingNewsData;
+
+  const title = await getAutoTranslation(data.title, currentLang);
+  const desc = await getAutoTranslation(data.desc, currentLang);
+  const overlay = data.overlay ? await getAutoTranslation(data.overlay, currentLang) : "";
+
+  document.querySelectorAll('.bn-title-display').forEach(el => el.innerText = title);
+  document.querySelectorAll('.bn-desc-display').forEach(el => el.innerText = desc);
+  document.querySelectorAll('.bn-overlay-display').forEach(el => el.innerText = overlay);
+  document.querySelectorAll('.bn-img-display').forEach(el => el.src = data.imageUrl);
+}
+    
 
 db.ref('newsPosts').on('value', (snapshot) => {
   newsPostsDataCache = snapshot.val() || {};
@@ -1810,20 +1843,19 @@ db.ref('newsPosts').on('value', (snapshot) => {
 });
 
 // Renderowanie listy wpisów w Aktualnościach
-function renderNewsPosts() {
+async function renderNewsPosts() {
   const container = document.getElementById("newsPostsContainer");
   if (!container) return;
-  container.innerHTML = "";
 
   const keys = Object.keys(newsPostsDataCache);
   if (keys.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak wiadomości w Aktualnościach.</p>`;
+    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">${currentLang === 'pl' ? 'Brak wiadomości w Aktualnościach.' : 'No news available.'}</p>`;
     return;
   }
 
   const postsArray = keys.map(key => ({ id: key, ...newsPostsDataCache[key] })).reverse();
 
-  postsArray.forEach(post => {
+  const renderedPosts = await Promise.all(postsArray.map(async (post) => {
     const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
     const isOwner = currentUser && (currentUser.uid === post.uid || currentUser.email === post.userEmail);
     const canDelete = isAdmin || isOwner;
@@ -1838,35 +1870,43 @@ function renderNewsPosts() {
     else if (isPostAuthorMod) authorBadge = getModBadgeHTML();
 
     const deleteBtn = canDelete ? `<button class="delete-btn-admin" onclick="deleteNewsPost('${post.id}')">${i18n[currentLang].deleteBtn}</button>` : '';
-    const titleHTML = post.title ? `<h3 style="font-size: 1.05rem; font-weight: 800; color: #ffffff; margin-top: 4px;">${post.title}</h3>` : '';
+
+    // Automatyczne tłumaczenie tytułu, treści i podpisu na zdjęciu
+    const displayTitle = post.title ? await getAutoTranslation(post.title, currentLang) : '';
+    const displayText = post.text ? await getAutoTranslation(post.text, currentLang) : '';
+    const displayOverlay = post.overlay ? await getAutoTranslation(post.overlay, currentLang) : '';
+
+    const titleHTML = displayTitle ? `<h3 style="font-size: 1.05rem; font-weight: 800; color: #ffffff; margin-top: 4px;">${displayTitle}</h3>` : '';
 
     let postImgHTML = '';
     if (post.imageUrl) {
-      if (post.overlay) {
+      if (displayOverlay) {
         postImgHTML = `
           <div class="news-media" style="margin-top: 8px; margin-bottom: 8px;">
             <img src="${post.imageUrl}" style="width:100%; border-radius:8px; max-height:320px; object-fit:cover; display:block;" alt="Attachment">
-            <div class="media-overlay-text">${post.overlay}</div>
+            <div class="media-overlay-text">${displayOverlay}</div>
           </div>`;
       } else {
         postImgHTML = `<img src="${post.imageUrl}" class="post-img" alt="Attachment">`;
       }
     }
 
-    const postDiv = document.createElement("div");
-    postDiv.className = "post-item";
-    postDiv.innerHTML = `
-      <div class="post-header">
-        <span class="post-author">${post.author}${authorBadge}${deleteBtn}</span>
-        <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+    return `
+      <div class="post-item">
+        <div class="post-header">
+          <span class="post-author">${post.author}${authorBadge}${deleteBtn}</span>
+          <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        ${titleHTML}
+        ${displayText ? `<div class="post-body">${displayText}</div>` : ''}
+        ${postImgHTML}
       </div>
-      ${titleHTML}
-      ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
-      ${postImgHTML}
     `;
-    container.appendChild(postDiv);
-  });
+  }));
+
+  container.innerHTML = renderedPosts.join('');
 }
+    
     
 
 function deleteNewsPost(postId) {
@@ -2128,9 +2168,9 @@ function deleteNewsPost(postId) {
       document.getElementById("txt-trending-news-title").innerText = i18n[lang].trendingNewsTitle;
 
       document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
-      document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
-      document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
-      document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc);
+     // document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle); //
+     // document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay); //
+     // document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc); //
 
       document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
       document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
@@ -2144,6 +2184,9 @@ function deleteNewsPost(postId) {
       renderHallOfFame();
       updateAuthUI();
       renderPosts();
+      updateBreakingNewsDisplay();
+      renderNewsPosts();
+      
 
       if (activeChadId !== null) {
         const chad = chadsData.find(c => c.id === activeChadId);
