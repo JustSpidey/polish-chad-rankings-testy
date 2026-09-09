@@ -893,25 +893,28 @@
         </div>
 
         <!-- Tworzenie wpisu -->
-<div class="create-post-card" id="postCreateCard">
-  <div class="post-lock-overlay" id="postLockOverlay" onclick="openAuthModal()">
-    <span class="post-lock-icon">🔒</span>
-    <span class="post-lock-text" id="txt-lock-overlay">Zaloguj się, aby dodać wpis</span>
-  </div>
+        <div class="create-post-card" id="postCreateCard">
+          <div class="post-lock-overlay" id="postLockOverlay" onclick="openAuthModal()">
+            <span class="post-lock-icon">🔒</span>
+            <span class="post-lock-text" id="txt-lock-overlay">Zaloguj się, aby dodać wpis</span>
+          </div>
 
-  <input type="text" id="postTitle" class="auth-input" placeholder="Tytuł wpisu (opcjonalnie)">
-  <textarea class="post-textarea" id="postInput" placeholder="Napisz coś na społeczności..."></textarea>
-  <input type="text" id="postOverlay" class="auth-input" placeholder="Podpis na zdjęciu (opcjonalnie)">
-  
-  <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-    <label class="file-input-btn">
-      🖼️ <span id="txt-add-img">Dodaj zdjęcie</span>
-      <input type="file" id="postImage" accept="image/*" style="display: none;" onchange="updateFileName(this, 'postImageName')">
-    </label>
-    <span id="postImageName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
-    <button class="auth-btn-small" onclick="createPost()" id="txt-publish-btn">Opublikuj</button>
+          <textarea class="post-textarea" id="postInput" placeholder="Napisz coś na społeczności..."></textarea>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <label class="file-input-btn">
+              🖼️ <span id="txt-add-img">Dodaj zdjęcie</span>
+              <input type="file" id="postImage" accept="image/*" style="display: none;" onchange="updateFileName(this, 'postImageName')">
+            </label>
+            <span id="postImageName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
+            <button class="auth-btn-small" onclick="createPost()" id="txt-publish-btn">Opublikuj</button>
+          </div>
+        </div>
+
+        <div class="posts-feed" id="postsContainer"></div>
+      </div>
+    </main>
   </div>
-</div>
         
 
   <!-- MODAL PROFILU CHADA -->
