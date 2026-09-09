@@ -2006,39 +2006,7 @@ function deleteNewsPost(postId) {
     container.appendChild(postDiv);
   });
     }
-    const commentInputHTML = `
-      <div class="comments-section">
-        ${commentsHTML}
-        <div class="comment-input-box">
-          <div style="display:flex; gap:6px; width:100%;">
-            <input type="text" class="comment-input" id="commentInput_${post.id}" placeholder="${i18n[currentLang].writeComment}">
-            <button class="auth-btn-small" onclick="addComment('${post.id}')">${i18n[currentLang].commentBtn}</button>
-          </div>
-          <label class="file-input-btn" style="align-self: flex-start; font-size: 0.7rem; padding: 4px 8px;">
-            📷 <span>${i18n[currentLang].addImgComm}</span>
-            <input type="file" id="commentImg_${post.id}" accept="image/*" style="display:none;" onchange="updateFileName(this, 'cImgName_${post.id}')">
-          </label>
-          <span id="cImgName_${post.id}" style="font-size: 0.7rem; color: var(--purple-light);"></span>
-        </div>
-      </div>
-    `;
-
-    const postDiv = document.createElement("div");
-    postDiv.className = "post-item";
-    postDiv.innerHTML = `
-      <div class="post-header">
-        <span class="post-author">${post.author}${authorBadge}${deletePostBtn}</span>
-        <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-      </div>
-      ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
-      ${postImgHTML}
-      ${postTranslateHTML}
-      ${commentInputHTML}
-    `;
-
-    container.appendChild(postDiv);
-  });
-    }
+    
     
 
     db.ref('posts').on('value', (snapshot) => {
