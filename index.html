@@ -1263,6 +1263,9 @@ const archivedPollVotes = {
 
     const autoTransCache = {};
 
+// 1. Obsługa automatycznego tłumaczenia z zabezpieczeniem przed błędem API
+const autoTransCache = {};
+
 async function getAutoTranslation(text, targetLang) {
   if (!text) return "";
   const key = targetLang + "_" + text;
@@ -1271,15 +1274,86 @@ async function getAutoTranslation(text, targetLang) {
   try {
     const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${targetLang}`);
     const data = await res.json();
-    if (data && data.responseData && data.responseData.translatedText) {
-      autoTransCache[key] = data.responseData.translatedText;
-      return data.responseData.translatedText;
+    if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+      const transText = data.responseData.translatedText;
+      // Jeśli API zwróciło komunikat o tym samym języku, zwracamy oryginał
+      if (!transText.toLowerCase().includes("select two distinctive languages")) {
+        autoTransCache[key] = transText;
+        return transText;
+      }
     }
   } catch (e) {
     console.error("Błąd tłumaczenia:", e);
   }
-  return text; // Zwraca oryginał w przypadku błędu API
+  return text;
 }
+
+// 2. Obsługa ręcznego tłumaczenia wpisów z uwzględnieniem edycji przez autora
+async function translateContent(btn, text, targetDivId, postId = null) {
+  const targetDiv = document.getElementById(targetDivId);
+  if (!targetDiv) return;
+
+  if (btn.dataset.translated === "true") {
+    targetDiv.style.display = "none";
+    btn.dataset.translated = "false";
+    btn.innerText = i18n[currentLang].translateBtn;
+    return;
+  }
+
+  // Jeśli autor ustawił własne tłumaczenie, użyj go bez zapytania do API
+  if (postId && postsDataCache[postId] && postsDataCache[postId].customTranslation) {
+    targetDiv.innerText = "🌐 " + postsDataCache[postId].customTranslation;
+    targetDiv.style.display = "block";
+    btn.dataset.translated = "true";
+    btn.innerText = i18n[currentLang].showOriginalBtn;
+    return;
+  }
+
+  btn.innerText = i18n[currentLang].translating;
+
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${currentLang}`);
+    const data = await res.json();
+    
+    if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+      const transText = data.responseData.translatedText;
+      if (transText.toLowerCase().includes("select two distinctive languages")) {
+        targetDiv.innerText = currentLang === "pl" ? "ℹ️ Wpis jest już w języku polskim." : "ℹ️ Text is already in this language.";
+      } else {
+        targetDiv.innerText = "🌐 " + transText;
+      }
+    } else {
+      targetDiv.innerText = currentLang === "pl" ? "ℹ️ Wpis jest już w języku polskim." : "ℹ️ Text is already in this language.";
+    }
+    
+    targetDiv.style.display = "block";
+    btn.dataset.translated = "true";
+    btn.innerText = i18n[currentLang].showOriginalBtn;
+  } catch (e) {
+    btn.innerText = i18n[currentLang].translateBtn;
+  }
+}
+
+// 3. Funkcja pozwalająca autorowi wpisu/adminowi na zmianę tłumaczenia
+async function editPostTranslation(postId) {
+  if (!currentUser) return;
+  const post = postsDataCache[postId];
+  if (!post) return;
+
+  const currentTrans = post.customTranslation || "";
+  const newTrans = prompt(
+    currentLang === "pl" 
+      ? "Wpisz własne / poprawione tłumaczenie dla tego wpisu:" 
+      : "Enter custom / corrected translation for this post:", 
+    currentTrans
+  );
+
+  if (newTrans !== null) {
+    await db.ref(`posts/${postId}/customTranslation`).set(newTrans.trim());
+    alert(currentLang === "pl" ? "Tłumaczenie zostało zapisane!" : "Translation saved!");
+  }
+}
+    
     
 
     function renderRankings() {
@@ -1917,34 +1991,7 @@ function deleteNewsPost(postId) {
 }
     
 
-    async function translateContent(btn, text, targetDivId) {
-      const targetDiv = document.getElementById(targetDivId);
-      if (!targetDiv) return;
-
-      if (btn.dataset.translated === "true") {
-        targetDiv.style.display = "none";
-        btn.dataset.translated = "false";
-        btn.innerText = i18n[currentLang].translateBtn;
-        return;
-      }
-
-      btn.innerText = i18n[currentLang].translating;
-
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|${currentLang}`);
-        const data = await res.json();
-        if (data && data.responseData && data.responseData.translatedText) {
-          targetDiv.innerText = "🌐 " + data.responseData.translatedText;
-          targetDiv.style.display = "block";
-          btn.dataset.translated = "true";
-          btn.innerText = i18n[currentLang].showOriginalBtn;
-        } else {
-          btn.innerText = i18n[currentLang].translateBtn;
-        }
-      } catch (e) {
-        btn.innerText = i18n[currentLang].translateBtn;
-      }
-    }
+    
 
     function renderPosts() {
   const container = document.getElementById("postsContainer");
@@ -1993,10 +2040,17 @@ function deleteNewsPost(postId) {
 
     const titleHTML = post.title ? `<h3 style="font-size: 1.05rem; font-weight: 800; color: #ffffff; margin-top: 4px;">${post.title}</h3>` : '';
     const safePostText = post.text ? post.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
-    const postTranslateHTML = post.text 
-      ? `<div class="translated-box" id="postTrans_${post.id}"></div>
-         <button class="translate-btn" onclick="translateContent(this, \`${safePostText}\`, 'postTrans_${post.id}')">${i18n[currentLang].translateBtn}</button>` 
-      : '';
+    const editTransBtn = (isOwner || isAdmin) && post.text
+  ? `<button class="translate-btn" style="margin-left: 8px; color: var(--gold-accent);" onclick="editPostTranslation('${post.id}')">✏️ Edytuj tłumaczenie</button>`
+  : '';
+
+const postTranslateHTML = post.text 
+  ? `<div class="translated-box" id="postTrans_${post.id}"></div>
+     <div style="display:flex; align-items:center;">
+       <button class="translate-btn" onclick="translateContent(this, \`${safePostText}\`, 'postTrans_${post.id}', '${post.id}')">${i18n[currentLang].translateBtn}</button>
+       ${editTransBtn}
+     </div>` 
+  : '';
 
     let commentsHTML = '';
     if (post.comments) {
