@@ -826,28 +826,62 @@
       </div>
 
       <!-- WIDOK NEWS -->
-      <div id="view-news" class="tab-view hidden">
-        <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
+<div id="view-news" class="tab-view hidden">
+  <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
 
-        <!-- Okienko Breaking News w zakładce News -->
-        <div class="breaking-news-card">
-          <div class="breaking-header">
-            <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
-          </div>
-          <h2 class="breaking-title txt-breaking-title">BEFT RATUJE NAS PRZED HIPERGAMIĄ?</h2>
-          <div class="news-media">
-            <img src="NEWS.jpg" alt="News Image">
-            <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
-          </div>
-          <p class="news-description txt-news-desc">
-            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.
-          </p>
-        </div>
+  <!-- Panel Edycji Breaking News (Widoczny tylko dla WŁAŚCICIEL / CHAD / MOD) -->
+  <div class="create-post-card" id="adminBreakingNewsCard" style="display: none; border: 1px solid var(--accent-red);">
+    <h3 style="font-size: 0.9rem; color: var(--accent-red);">🚨 Zmień Breaking News</h3>
+    <input type="text" id="bnInputTitle" class="auth-input" placeholder="Tytuł Breaking News">
+    <textarea id="bnInputDesc" class="post-textarea" placeholder="Opis Breaking News..."></textarea>
+    <input type="text" id="bnInputOverlay" class="auth-input" placeholder="Podpis na zdjęciu (np. 'Beft vs Hipergamia')">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+      <label class="file-input-btn">
+        🖼️ <span>Zdjęcie Breaking News</span>
+        <input type="file" id="bnInputImage" accept="image/*" style="display: none;" onchange="updateFileName(this, 'bnImgName')">
+      </label>
+      <span id="bnImgName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
+      <button class="auth-btn-small" style="background: var(--accent-red);" onclick="publishBreakingNews()">Zapisz i Opublikuj w Newsach</button>
+    </div>
+  </div>
 
-        <div class="section-title-news" id="txt-trending-news-title" style="margin-top: 10px;">
-          🔥 Popularne wiadomości
-        </div>
-      </div>
+  <!-- Dynamiczne Okienko Breaking News -->
+  <div class="breaking-news-card">
+    <div class="breaking-header">
+      <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
+    </div>
+    <h2 class="breaking-title txt-breaking-title bn-title-display">BEFT RATUJE NAS PRZED HIPERGAMIĄ!</h2>
+    <div class="news-media">
+      <img src="NEWS.jpg" class="bn-img-display" alt="News Image">
+      <div class="media-overlay-text txt-media-overlay bn-overlay-display">"Beft vs Hipergamia" ❤️😭</div>
+    </div>
+    <p class="news-description txt-news-desc bn-desc-display">
+      Beft wkracza do gry w najtrudniejszym momencie...
+    </p>
+  </div>
+
+  <!-- Tworzenie zwykłego wpisu w Aktualnościach (Widoczne tylko dla WŁAŚCICIEL / CHAD / MOD) -->
+  <div class="create-post-card" id="newsCreateCard" style="display: none;">
+    <h3 style="font-size: 0.9rem; color: var(--purple-light);">📰 Dodaj Wpis do Aktualności</h3>
+    <textarea class="post-textarea" id="newsPostInput" placeholder="Napisz oficjalną wiadomość..."></textarea>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <label class="file-input-btn">
+        🖼️ <span>Dodaj zdjęcie</span>
+        <input type="file" id="newsPostImage" accept="image/*" style="display: none;" onchange="updateFileName(this, 'newsImgName')">
+      </label>
+      <span id="newsImgName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
+      <button class="auth-btn-small" onclick="createNewsPost()" id="btnPublishNews">Opublikuj News</button>
+    </div>
+  </div>
+
+  <div class="section-title-news" id="txt-trending-news-title" style="margin-top: 10px;">
+    🔥 Popularne wiadomości
+  </div>
+
+  <!-- Lista postów w Aktualnościach -->
+  <div class="posts-feed" id="newsPostsContainer"></div>
+</div>
+      
 
       <!-- WIDOK SPOŁECZNOŚCI -->
       <div id="view-community" class="tab-view hidden">
@@ -944,6 +978,23 @@
       "samulyt56@gmail.com",
       "fabianbachar2000@gmail.com"
     ];
+
+    // Lista e-maili z uprawnieniami MOD
+const MOD_EMAILS = [
+  "platekkacper09@gmail.com",
+  "moderator2@gmail.com"
+];
+
+// Funkcja sprawdzająca czy użytkownik ma rolę: WŁAŚCICIEL, CHAD lub MOD
+function hasNewsPermissions() {
+  if (!currentUser || !currentUser.email) return false;
+  const email = currentUser.email.toLowerCase();
+  const isAdmin = email === ADMIN_EMAIL.toLowerCase();
+  const isChad = CHAD_EMAILS.map(e => e.toLowerCase()).includes(email);
+  const isMod = MOD_EMAILS.map(e => e.toLowerCase()).includes(email);
+  return isAdmin || isChad || isMod;
+}
+    
 
     const firebaseConfig = {
       apiKey: "AIzaSyCJDcay4pyauLgGQLloTrf1kp2GjXoQmTA",
@@ -1421,24 +1472,32 @@ function castPollVote() {
 }
     
     function updateAuthUI() {
-      const status = document.getElementById("userAuthStatus");
-      const btn = document.getElementById("btnAuthAction");
-      const overlay = document.getElementById("postLockOverlay");
+  const status = document.getElementById("userAuthStatus");
+  const btn = document.getElementById("btnAuthAction");
+  const overlay = document.getElementById("postLockOverlay");
 
-      if (currentUser) {
-        const isAdmin = currentUser.email === ADMIN_EMAIL;
-        const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
-        const nameDisplay = currentUser.displayName || currentUser.email;
+  const newsCard = document.getElementById("newsCreateCard");
+  const bnAdminCard = document.getElementById("adminBreakingNewsCard");
 
-        status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
-        btn.innerText = i18n[currentLang].logoutBtn;
-        if (overlay) overlay.style.display = "none";
-      } else {
-        status.innerText = i18n[currentLang].notLoggedIn;
-        btn.innerText = i18n[currentLang].loginBtn;
-        if (overlay) overlay.style.display = "flex";
-      }
+  const canPostNews = hasNewsPermissions();
+  if (newsCard) newsCard.style.display = canPostNews ? "flex" : "none";
+  if (bnAdminCard) bnAdminCard.style.display = canPostNews ? "flex" : "none";
+
+  if (currentUser) {
+    const isAdmin = currentUser.email === ADMIN_EMAIL;
+    const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
+    const nameDisplay = currentUser.displayName || currentUser.email;
+
+    status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
+    btn.innerText = i18n[currentLang].logoutBtn;
+    if (overlay) overlay.style.display = "none";
+  } else {
+    status.innerText = i18n[currentLang].notLoggedIn;
+    btn.innerText = i18n[currentLang].loginBtn;
+    if (overlay) overlay.style.display = "flex";
+  }
     }
+    
 
     function handleAuthAction() {
       if (currentUser) {
@@ -1618,6 +1677,162 @@ function deleteComment(postId, commentId) {
 
   if (confirm(currentLang === "pl" ? 'Usunąć komentarz?' : 'Delete comment?')) {
     db.ref(`posts/${postId}/comments/${commentId}`).remove();
+  }
+}
+
+    let newsPostsDataCache = {};
+
+// Dodawanie zwykłego posta w zakładce Aktualności
+async function createNewsPost() {
+  if (!hasNewsPermissions()) return alert("Brak uprawnień do publikacji w Aktualnościach!");
+
+  const textInput = document.getElementById("newsPostInput");
+  const fileInput = document.getElementById("newsPostImage");
+  const text = textInput.value.trim();
+  const file = fileInput.files[0];
+
+  if (!text && !file) return alert("Napisz treść lub dodaj zdjęcie!");
+
+  const btn = document.getElementById("btnPublishNews");
+  btn.innerText = i18n[currentLang].uploading;
+  btn.disabled = true;
+
+  try {
+    const imageUrl = await uploadImage(file);
+    await db.ref('newsPosts').push({
+      author: currentUser.displayName || currentUser.email,
+      uid: currentUser.uid,
+      userEmail: currentUser.email,
+      text: text,
+      imageUrl: imageUrl || null,
+      timestamp: Date.now()
+    });
+
+    textInput.value = "";
+    fileInput.value = "";
+    document.getElementById("newsImgName").innerText = "";
+  } catch (err) {
+    alert("Błąd: " + err.message);
+  } finally {
+    btn.innerText = "Opublikuj News";
+    btn.disabled = false;
+  }
+}
+
+// Aktualizacja Breaking News i automatyczna publikacja wpisu w Aktualnościach
+async function publishBreakingNews() {
+  if (!hasNewsPermissions()) return alert("Brak uprawnień!");
+
+  const title = document.getElementById("bnInputTitle").value.trim();
+  const desc = document.getElementById("bnInputDesc").value.trim();
+  const overlay = document.getElementById("bnInputOverlay").value.trim();
+  const file = document.getElementById("bnInputImage").files[0];
+
+  if (!title || !desc) return alert("Uzupełnij tytuł i opis Breaking News!");
+
+  try {
+    let imageUrl = "NEWS.jpg";
+    if (file) {
+      imageUrl = await uploadImage(file);
+    }
+
+    const bnData = {
+      title: title,
+      desc: desc,
+      overlay: overlay || "",
+      imageUrl: imageUrl,
+      updatedAt: Date.now()
+    };
+
+    // 1. Zapisz w bazie nowe dane Breaking News
+    await db.ref('breakingNews').set(bnData);
+
+    // 2. Automatycznie przetwórz na nowy post w zakładce Aktualności
+    const newsContent = `🚨 **BREAKING NEWS: ${title}**\n\n${desc}`;
+    await db.ref('newsPosts').push({
+      author: currentUser.displayName || currentUser.email,
+      uid: currentUser.uid,
+      userEmail: currentUser.email,
+      text: newsContent,
+      imageUrl: imageUrl,
+      timestamp: Date.now()
+    });
+
+    alert("Pomyślnie zaktualizowano Breaking News i opublikowano w Aktualnościach!");
+    document.getElementById("bnInputTitle").value = "";
+    document.getElementById("bnInputDesc").value = "";
+    document.getElementById("bnInputOverlay").value = "";
+    document.getElementById("bnInputImage").value = "";
+    document.getElementById("bnImgName").innerText = "";
+  } catch (err) {
+    alert("Błąd podczas zapisywania: " + err.message);
+  }
+}
+
+// Synchroniczne odczytywanie Breaking News oraz Newsów z Firebase
+db.ref('breakingNews').on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    document.querySelectorAll('.bn-title-display').forEach(el => el.innerText = data.title);
+    document.querySelectorAll('.bn-desc-display').forEach(el => el.innerText = data.desc);
+    document.querySelectorAll('.bn-overlay-display').forEach(el => el.innerText = data.overlay);
+    document.querySelectorAll('.bn-img-display').forEach(el => el.src = data.imageUrl);
+  }
+});
+
+db.ref('newsPosts').on('value', (snapshot) => {
+  newsPostsDataCache = snapshot.val() || {};
+  renderNewsPosts();
+});
+
+// Renderowanie listy wpisów w Aktualnościach
+function renderNewsPosts() {
+  const container = document.getElementById("newsPostsContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const keys = Object.keys(newsPostsDataCache);
+  if (keys.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak wiadomości w Aktualnościach.</p>`;
+    return;
+  }
+
+  const postsArray = keys.map(key => ({ id: key, ...newsPostsDataCache[key] })).reverse();
+
+  postsArray.forEach(post => {
+    const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+    const isOwner = currentUser && (currentUser.uid === post.uid || currentUser.email === post.userEmail);
+    const canDelete = isAdmin || isOwner;
+
+    const isPostAuthorAdmin = post.userEmail === ADMIN_EMAIL;
+    const isPostAuthorChad = !isPostAuthorAdmin && isChadEmail(post.userEmail);
+
+    let authorBadge = '';
+    if (isPostAuthorAdmin) authorBadge = getOwnerBadgeHTML();
+    else if (isPostAuthorChad) authorBadge = getChadBadgeHTML();
+    else authorBadge = `<span style="color:var(--purple-light); font-size:0.75rem; margin-left:4px;">[MOD]</span>`;
+
+    const deleteBtn = canDelete ? `<button class="delete-btn-admin" onclick="deleteNewsPost('${post.id}')">${i18n[currentLang].deleteBtn}</button>` : '';
+    const postImg = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img" alt="Attachment">` : '';
+
+    const postDiv = document.createElement("div");
+    postDiv.className = "post-item";
+    postDiv.innerHTML = `
+      <div class="post-header">
+        <span class="post-author">${post.author}${authorBadge}${deleteBtn}</span>
+        <span class="post-time">${new Date(post.timestamp).toLocaleDateString()} ${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      </div>
+      ${post.text ? `<div class="post-body">${post.text}</div>` : ''}
+      ${postImg}
+    `;
+    container.appendChild(postDiv);
+  });
+}
+
+function deleteNewsPost(postId) {
+  if (!currentUser || !hasNewsPermissions()) return;
+  if (confirm('Usuń ten news?')) {
+    db.ref(`newsPosts/${postId}`).remove();
   }
 }
     
