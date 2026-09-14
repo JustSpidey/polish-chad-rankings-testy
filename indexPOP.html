@@ -814,6 +814,13 @@
           </p>
         </div>
 
+        <!-- Przycisk Reset dostępny tylko dla Właściciela -->
+<div id="ownerResetContainer" style="display: none; margin-bottom: 10px;">
+  <button class="auth-btn-small" style="background: #ef4444; width: 100%; padding: 10px; font-size: 0.85rem; font-weight: 800;" onclick="triggerOwnerReset()">
+    🔄 Resetuj ranking i przelicz głosy (Właściciel)
+  </button>
+</div>
+
         <section class="rankings-list" id="rankings"></section>
 
         <section class="hof-section">
@@ -1432,24 +1439,32 @@ function castPollVote() {
 }
     
     function updateAuthUI() {
-      const status = document.getElementById("userAuthStatus");
-      const btn = document.getElementById("btnAuthAction");
-      const overlay = document.getElementById("postLockOverlay");
+  const status = document.getElementById("userAuthStatus");
+  const btn = document.getElementById("btnAuthAction");
+  const overlay = document.getElementById("postLockOverlay");
+  const ownerResetBtn = document.getElementById("ownerResetContainer");
 
-      if (currentUser) {
-        const isAdmin = currentUser.email === ADMIN_EMAIL;
-        const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
-        const nameDisplay = currentUser.displayName || currentUser.email;
+  const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
 
-        status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
-        btn.innerText = i18n[currentLang].logoutBtn;
-        if (overlay) overlay.style.display = "none";
-      } else {
-        status.innerText = i18n[currentLang].notLoggedIn;
-        btn.innerText = i18n[currentLang].loginBtn;
-        if (overlay) overlay.style.display = "flex";
-      }
+  // Sterowanie widocznością przycisku resetu
+  if (ownerResetBtn) {
+    ownerResetBtn.style.display = isAdmin ? "block" : "none";
+  }
+
+  if (currentUser) {
+    const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
+    const nameDisplay = currentUser.displayName || currentUser.email;
+
+    status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
+    btn.innerText = i18n[currentLang].logoutBtn;
+    if (overlay) overlay.style.display = "none";
+  } else {
+    status.innerText = i18n[currentLang].notLoggedIn;
+    btn.innerText = i18n[currentLang].loginBtn;
+    if (overlay) overlay.style.display = "flex";
+  }
     }
+    
 
     function handleAuthAction() {
       if (currentUser) {
@@ -1854,6 +1869,19 @@ function deleteComment(postId, commentId) {
   }).then(() => {
     renderRankings();
   });
+    }
+
+    function triggerOwnerReset() {
+  if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    alert("Brak uprawnień!");
+    return;
+  }
+
+  const isConfirmed = confirm("Czy na pewno chcesz odblokować pozycje 16-20, posortować ranking od największej liczby głosów i wyzerować głosy w bazie?");
+  if (isConfirmed) {
+    const thisWeek = getWeekIdentifier();
+    performWeeklyReset(thisWeek);
+  }
     }
     
     
