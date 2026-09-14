@@ -539,6 +539,27 @@
   margin-left: 6px;
   display: inline-block;
     }
+
+    /* Odznaka MOD - zielona */
+.mod-badge {
+  color: #22c55e;
+  font-weight: 800;
+  font-size: 0.85em;
+  margin-left: 6px;
+  display: inline-block;
+}
+
+/* Formularz edycji tłumaczenia w modalu */
+.edit-trans-btn {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid var(--purple-main);
+  color: var(--purple-light);
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 6px;
+}
     
     .user-auth-bar {
       background: #100d1a; border: 1px solid rgba(168, 85, 247, 0.25);
@@ -834,8 +855,41 @@
 
       <!-- WIDOK NEWS -->
       <div id="view-news" class="tab-view hidden">
-        <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
+  <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
 
+  <!-- Formularz dodawania News / Breaking News (widoczny tylko dla Właściciela, Chada i Moda) -->
+  <div class="create-post-card" id="newsCreateCard" style="display: none;">
+    <h3 style="font-size: 0.95rem; color: var(--purple-light); margin-bottom: 8px;">➕ Dodaj wiadomość / Breaking News</h3>
+    <input type="text" id="newsTitleInput" class="auth-input" placeholder="Tytuł wiadomości">
+    <textarea id="newsDescInput" class="post-textarea" placeholder="Opis wiadomości..."></textarea>
+    <input type="text" id="newsOverlayInput" class="auth-input" placeholder="Napis na zdjęciu (opcjonalnie)">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+      <label class="file-input-btn">
+        🖼️ <span id="txt-add-news-img">Dodaj zdjęcie</span>
+        <input type="file" id="newsImage" accept="image/*" style="display: none;" onchange="updateFileName(this, 'newsImageName')">
+      </label>
+      <span id="newsImageName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
+
+      <label style="font-size: 0.8rem; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <input type="checkbox" id="chkIsBreaking"> 🚨 Ustaw jako Breaking News
+      </label>
+
+      <button class="auth-btn-small" onclick="publishNews()" id="btnPublishNews">Opublikuj</button>
+    </div>
+  </div>
+
+  <!-- Dynamiczne okienko Breaking News w zakładce News -->
+  <div id="breakingNewsContainerNews"></div>
+
+  <div class="section-title-news" id="txt-trending-news-title" style="margin-top: 10px;">
+    🔥 Popularne wiadomości
+  </div>
+
+  <!-- Feed ze wszystkimi zarchiwizowanymi i zwykłymi newsami -->
+  <div class="posts-feed" id="newsFeedContainer"></div>
+      </div>
+      
         <!-- Okienko Breaking News w zakładce News -->
         <div class="breaking-news-card">
           <div class="breaking-header">
@@ -918,6 +972,18 @@
     </div>
   </div>
 
+  <!-- MODAL EDYCJI TŁUMACZENIA -->
+<div class="modal" id="editTransModal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeEditTransModal()">&times;</button>
+    <h2>✏️ Edytuj Tłumaczenie (EN)</h2>
+    <input type="text" class="auth-input" id="editTransTitle" placeholder="Tytuł (EN)">
+    <textarea class="post-textarea" id="editTransDesc" placeholder="Opis (EN)" style="margin-bottom: 10px;"></textarea>
+    <input type="text" class="auth-input" id="editTransOverlay" placeholder="Napis na zdjęciu (EN)">
+    <button class="auth-btn-small" style="width:100%; margin-top:10px;" onclick="saveCustomTranslation()">Zapisz Tłumaczenie</button>
+  </div>
+</div>
+
   <!-- MODAL LOGOWANIA / REJESTRACJI -->
   <div class="modal" id="authModal">
     <div class="modal-content">
@@ -955,6 +1021,12 @@
       "samulyt56@gmail.com",
       "fabianbachar2000@gmail.com",
       "antekantix@gmail.com"
+    ];
+
+    // Lista e-maili z uprawnieniami MOD (Zielona odznaka)
+    const MOD_EMAILS = [
+      "platekkacper09@gmail.com",
+      "moderator2@gmail.com"
     ];
 
     const firebaseConfig = {
@@ -1449,19 +1521,25 @@ function castPollVote() {
   const btn = document.getElementById("btnAuthAction");
   const overlay = document.getElementById("postLockOverlay");
   const ownerResetBtn = document.getElementById("ownerResetContainer");
+  const newsCard = document.getElementById("newsCreateCard");
 
   const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
 
-  // Sterowanie widocznością przycisku resetu
-  if (ownerResetBtn) {
-    ownerResetBtn.style.display = isAdmin ? "block" : "none";
+  if (ownerResetBtn) ownerResetBtn.style.display = isAdmin ? "block" : "none";
+
+  // Pokazuj okienko do pisania w Aktualnościach tylko osobom z uprawnieniami (Owner, Chad, Mod)
+  if (newsCard) {
+    newsCard.style.display = hasNewsAccess() ? "flex" : "none";
   }
 
   if (currentUser) {
-    const adminTag = isAdmin ? " <b style='color:var(--gold-accent)'>[ADMIN]</b>" : "";
-    const nameDisplay = currentUser.displayName || currentUser.email;
+    let roleTag = "";
+    if (isAdmin) roleTag = getOwnerBadgeHTML();
+    else if (isChadEmail(currentUser.email)) roleTag = getChadBadgeHTML();
+    else if (isModEmail(currentUser.email)) roleTag = getModBadgeHTML();
 
-    status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + adminTag;
+    const nameDisplay = currentUser.displayName || currentUser.email;
+    status.innerHTML = i18n[currentLang].loggedInAs + nameDisplay + " " + roleTag;
     btn.innerText = i18n[currentLang].logoutBtn;
     if (overlay) overlay.style.display = "none";
   } else {
@@ -1470,6 +1548,204 @@ function castPollVote() {
     if (overlay) overlay.style.display = "flex";
   }
     }
+
+    let currentBreakingNews = null;
+let editingNewsId = null;
+
+async function publishNews() {
+  if (!hasNewsAccess()) return alert("Brak uprawnień do publikowania newsów!");
+
+  const title = document.getElementById("newsTitleInput").value.trim();
+  const desc = document.getElementById("newsDescInput").value.trim();
+  const overlayText = document.getElementById("newsOverlayInput").value.trim();
+  const file = document.getElementById("newsImage").files[0];
+  const isBreaking = document.getElementById("chkIsBreaking").checked;
+
+  if (!title || !desc) return alert("Wpisz tytuł i opis newsa!");
+
+  const btn = document.getElementById("btnPublishNews");
+  btn.disabled = true;
+  btn.innerText = i18n[currentLang].uploading;
+
+  try {
+    let imageUrl = "NEWS.jpg"; // Domyślne zdjęcie
+    if (file) {
+      imageUrl = await uploadImage(file);
+    }
+
+    const newsData = {
+      title: title,
+      desc: desc,
+      overlay: overlayText,
+      imageUrl: imageUrl,
+      author: currentUser.displayName || currentUser.email,
+      userEmail: currentUser.email,
+      timestamp: Date.now()
+    };
+
+    if (isBreaking) {
+      // Jeśli istnieje obecny Breaking News, przenieś go automatycznie do bazy zwykłych newsów
+      if (currentBreakingNews) {
+        await db.ref('news').push(currentBreakingNews);
+      }
+      // Zapisz nowy Breaking News
+      await db.ref('breakingNews').set(newsData);
+    } else {
+      // Zwykły wpis bezpośrednio do zakładki Aktualności
+      await db.ref('news').push(newsData);
+    }
+
+    // Reset formularza
+    document.getElementById("newsTitleInput").value = "";
+    document.getElementById("newsDescInput").value = "";
+    document.getElementById("newsOverlayInput").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("chkIsBreaking").checked = false;
+    document.getElementById("newsImageName").innerText = "";
+
+  } catch (err) {
+    alert("Błąd: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Opublikuj";
+  }
+}
+    
+    // Auto-tłumaczenie pojedynczego ciągu tekstowego
+async function getAutoTranslation(text) {
+  if (!text) return "";
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=Autodetect|en`);
+    const data = await res.json();
+    return data?.responseData?.translatedText || text;
+  } catch (e) {
+    return text;
+  }
+}
+
+// Otwieranie modalu edycji ręcznego tłumaczenia EN
+function openEditTransModal(newsId, isBreaking = false) {
+  editingNewsId = isBreaking ? 'BREAKING' : newsId;
+  const data = isBreaking ? currentBreakingNews : newsFeedCache[newsId];
+  if (!data) return;
+
+  document.getElementById("editTransTitle").value = data.titleEn || "";
+  document.getElementById("editTransDesc").value = data.descEn || "";
+  document.getElementById("editTransOverlay").value = data.overlayEn || "";
+  document.getElementById("editTransModal").style.display = "flex";
+}
+
+function closeEditTransModal() {
+  document.getElementById("editTransModal").style.display = "none";
+  editingNewsId = null;
+}
+
+async function saveCustomTranslation() {
+  if (!editingNewsId) return;
+
+  const titleEn = document.getElementById("editTransTitle").value.trim();
+  const descEn = document.getElementById("editTransDesc").value.trim();
+  const overlayEn = document.getElementById("editTransOverlay").value.trim();
+
+  const refPath = editingNewsId === 'BREAKING' ? 'breakingNews' : `news/${editingNewsId}`;
+  
+  await db.ref(refPath).update({
+    titleEn: titleEn,
+    descEn: descEn,
+    overlayEn: overlayEn
+  });
+
+  closeEditTransModal();
+}
+
+    let newsFeedCache = {};
+
+function renderBreakingNewsCard(data, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container || !data) return;
+
+  // Wybór tekstu zależnie od języka oraz od tego, czy zdefiniowano ręczne tłumaczenie
+  let displayTitle = data.title;
+  let displayDesc = data.desc;
+  let displayOverlay = data.overlay;
+
+  if (currentLang === 'en') {
+    displayTitle = data.titleEn || data.autoTitleEn || data.title;
+    displayDesc = data.descEn || data.autoDescEn || data.desc;
+    displayOverlay = data.overlayEn || data.autoOverlayEn || data.overlay;
+  }
+
+  const editBtn = hasNewsAccess() 
+    ? `<button class="edit-trans-btn" onclick="openEditTransModal(null, true)">✏️ Edytuj tłumaczenie EN</button>` 
+    : '';
+
+  container.innerHTML = `
+    <div class="breaking-news-card">
+      <div class="breaking-header">
+        <span>🚨</span> <span class="txt-breaking-header">${i18n[currentLang].breakingHeader}</span> <span>🚨</span>
+      </div>
+      <h2 class="breaking-title">${displayTitle}</h2>
+      ${data.imageUrl ? `
+        <div class="news-media">
+          <img src="${data.imageUrl}" alt="News Image">
+          ${displayOverlay ? `<div class="media-overlay-text">${displayOverlay}</div>` : ''}
+        </div>
+      ` : ''}
+      <p class="news-description">${displayDesc}</p>
+      ${editBtn}
+    </div>
+  `;
+}
+
+function renderNewsFeed() {
+  const container = document.getElementById("newsFeedContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const keys = Object.keys(newsFeedCache);
+  if (keys.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak archiwalnych wiadomości.</p>`;
+    return;
+  }
+
+  const newsArray = keys.map(k => ({ id: k, ...newsFeedCache[k] })).reverse();
+
+  newsArray.forEach(news => {
+    let displayTitle = news.title;
+    let displayDesc = news.desc;
+    let displayOverlay = news.overlay;
+
+    if (currentLang === 'en') {
+      displayTitle = news.titleEn || news.autoTitleEn || news.title;
+      displayDesc = news.descEn || news.autoDescEn || news.desc;
+      displayOverlay = news.overlayEn || news.autoOverlayEn || news.overlay;
+    }
+
+    const editBtn = hasNewsAccess() 
+      ? `<button class="edit-trans-btn" onclick="openEditTransModal('${news.id}', false)">✏️ Edytuj tłumaczenie EN</button>` 
+      : '';
+
+    const newsDiv = document.createElement("div");
+    newsDiv.className = "post-item";
+    newsDiv.innerHTML = `
+      <div class="post-header">
+        <span class="post-author">${news.author || 'Redakcja'}</span>
+        <span class="post-time">${new Date(news.timestamp).toLocaleDateString()}</span>
+      </div>
+      <h3 style="font-size: 1rem; color: #fff; margin-top: 4px;">${displayTitle}</h3>
+      ${news.imageUrl ? `
+        <div class="news-media" style="margin-top: 6px;">
+          <img src="${news.imageUrl}" class="post-img" alt="News Image">
+          ${displayOverlay ? `<div class="media-overlay-text">${displayOverlay}</div>` : ''}
+        </div>
+      ` : ''}
+      <p class="post-body" style="margin-top: 6px;">${displayDesc}</p>
+      ${editBtn}
+    `;
+    container.appendChild(newsDiv);
+  });
+    }
+    
     
 
     function handleAuthAction() {
@@ -1502,6 +1778,25 @@ function castPollVote() {
     function getChadBadgeHTML() {
       return `<span style="color: var(--gold-accent); font-weight: bold; font-size: 0.85em; margin-left: 6px;">[CHAD]</span>`;
     }
+
+    function getModBadgeHTML() {
+  return `<span class="mod-badge">[MOD]</span>`;
+}
+
+function isModEmail(email) {
+  if (!email) return false;
+  return MOD_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase());
+}
+
+// Sprawdzenie czy zalogowany użytkownik ma dostęp do pisania newsów (Owner / Chad / Mod)
+function hasNewsAccess() {
+  if (!currentUser || !currentUser.email) return false;
+  const email = currentUser.email.toLowerCase();
+  const isAdmin = email === ADMIN_EMAIL.toLowerCase();
+  const isChad = CHAD_EMAILS.map(e => e.toLowerCase()).includes(email);
+  const isMod = MOD_EMAILS.map(e => e.toLowerCase()).includes(email);
+  return isAdmin || isChad || isMod;
+}
     
     
     function handleLogin() {
@@ -1850,6 +2145,27 @@ function deleteComment(postId, commentId) {
   renderRankings();
 });
     
+    // Nasłuchiwanie Breaking News
+db.ref('breakingNews').on('value', async (snap) => {
+  currentBreakingNews = snap.val();
+  if (currentBreakingNews) {
+    // Automatyczne generowanie tłumaczenia w tle (jeśli nie ma ręcznego)
+    if (!currentBreakingNews.titleEn && !currentBreakingNews.autoTitleEn) {
+      currentBreakingNews.autoTitleEn = await getAutoTranslation(currentBreakingNews.title);
+      currentBreakingNews.autoDescEn = await getAutoTranslation(currentBreakingNews.desc);
+      currentBreakingNews.autoOverlayEn = await getAutoTranslation(currentBreakingNews.overlay);
+    }
+    // Wyświetlanie w obu miejscach
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerRankings");
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerNews");
+  }
+});
+
+// Nasłuchiwanie listy zwykłych/archiwalnych Newsów
+db.ref('news').on('value', (snap) => {
+  newsFeedCache = snap.val() || {};
+  renderNewsFeed();
+});
     
 
     // Funkcja sortująca osoby wg głosów, ustalająca nowe miejsca (1-15) i zerująca głosy
