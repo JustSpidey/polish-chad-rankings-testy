@@ -1140,7 +1140,8 @@ const archivedPollVotes = {
         mediaOverlay: '"Beft vs Hipergamia" ❤️😭',
         newsDesc: "Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.",
         newsPageTitle: "AKTUALNOŚCI",
-        trendingNewsTitle: "🔥 Popularne wiadomości"
+        trendingNewsTitle: "🔥 Popularne wiadomości",
+        voteWait: "⏳ Odczekaj"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -1193,7 +1194,8 @@ const archivedPollVotes = {
         mediaOverlay: '"Beft vs Hypergamy" ❤️😭',
         newsDesc: "Beft enters the fray at the most critical moment, returning to shoulder the burden of battling market imbalances. With a snap of his fingers, he summons the brutal paradigm of hypergamy, only to deliver a series of devastating blows without a moment’s hesitation, shattering it to dust. His predatory style and uncompromising stance send a clear signal to his brothers in the underground: the era of market inequality has just come to an end.",
         newsPageTitle: "NEWS",
-        trendingNewsTitle: "🔥 Trending News"
+        trendingNewsTitle: "🔥 Trending News",
+        voteWait: "⏳ Wait"
       }
     };
 
@@ -2012,7 +2014,8 @@ function deleteComment(postId, commentId) {
       btn.classList.add("voted");
       const m = Math.floor(timeLeft / 60000);
       const s = Math.floor((timeLeft % 60000) / 1000);
-      document.getElementById("txt-vote").innerText = `⏳ Odczekaj ${m}m ${s}s`;
+      const waitPrefix = i18n[currentLang]?.voteWait || "⏳ Odczekaj";
+      document.getElementById("txt-vote").innerText = `${waitPrefix} ${m}m ${s}s`;
     } else {
       btn.disabled = false;
       btn.classList.remove("voted");
