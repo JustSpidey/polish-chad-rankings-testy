@@ -944,6 +944,9 @@
     
     const ADMIN_EMAIL = "kplatek.2020@gmail.com";
     const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
+    const VOTE_COOLDOWN = 48 * 60 * 1000; // 48 minut
+    let modalTimerInterval = null;
+    
 
     // Lista e-maili z uprawnieniami CHAD
     const CHAD_EMAILS = [
@@ -1988,33 +1991,55 @@ function deleteComment(postId, commentId) {
     }
 
     function updateVoteButtonState(id) {
-      const btn = document.getElementById("btnVote");
-      const chad = chadsData.find(c => c.id === id);
+  const btn = document.getElementById("btnVote");
+  const chad = chadsData.find(c => c.id === id);
 
-      if (!chad || chad.locked) {
-        btn.style.display = "none";
-        return;
-      }
+  if (!chad || chad.locked) {
+    btn.style.display = "none";
+    return;
+  }
 
-      btn.style.display = "inline-flex";
-      const hasVoted = parseInt(localStorage.getItem(getStoredVoteKey(id)) || "0", 10) > 0;
-      btn.classList.toggle("voted", hasVoted);
-      document.getElementById("txt-vote").innerText = hasVoted ? i18n[currentLang].btnVoted : i18n[currentLang].btnVote;
+  btn.style.display = "inline-flex";
+  
+  if (modalTimerInterval) clearInterval(modalTimerInterval);
+
+  const checkState = () => {
+    const lastVoteTime = parseInt(localStorage.getItem(getStoredVoteKey(id)) || "0", 10);
+    const timeLeft = VOTE_COOLDOWN - (Date.now() - lastVoteTime);
+
+    if (timeLeft > 0) {
+      btn.disabled = true;
+      btn.classList.add("voted");
+      const m = Math.floor(timeLeft / 60000);
+      const s = Math.floor((timeLeft % 60000) / 1000);
+      document.getElementById("txt-vote").innerText = `⏳ Odczekaj ${m}m ${s}s`;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove("voted");
+      document.getElementById("txt-vote").innerText = i18n[currentLang].btnVote;
+      if (modalTimerInterval) clearInterval(modalTimerInterval);
     }
+  };
+
+  checkState();
+  modalTimerInterval = setInterval(checkState, 1000);
+    }
+    
 
     function castVote() {
   if (!activeChadId) return;
   const chad = chadsData.find(c => c.id === activeChadId);
   if (!chad || chad.locked) return;
 
-  if (parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10) === 0) {
-    localStorage.setItem(getStoredVoteKey(activeChadId), "1");
+  const lastVoteTime = parseInt(localStorage.getItem(getStoredVoteKey(activeChadId)) || "0", 10);
+  const now = Date.now();
 
-    // 1. Zwiększamy lokalny licznik i od razu aktualizujemy cyfrę w karcie
+  if (now - lastVoteTime >= VOTE_COOLDOWN) {
+    localStorage.setItem(getStoredVoteKey(activeChadId), now.toString());
+
     chad.votes = (chad.votes || 0) + 1;
     document.getElementById("modalStatVotes").innerText = chad.votes;
 
-    const weekKey = getWeekIdentifier();
     db.ref('votes/' + activeChadId).transaction(function(c) {
       return (c || 0) + 1; 
     });
@@ -2024,10 +2049,11 @@ function deleteComment(postId, commentId) {
     }
     
     function closeModal() {
-      document.getElementById("profileModal").style.display = "none";
-      activeChadId = null;
+  document.getElementById("profileModal").style.display = "none";
+  activeChadId = null;
+  if (modalTimerInterval) clearInterval(modalTimerInterval);
     }
-
+    w
         function updateCountdown() {
       const timerElem = document.getElementById("timer-text");
       if (!timerElem) return;
