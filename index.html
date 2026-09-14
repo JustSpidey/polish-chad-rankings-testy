@@ -821,19 +821,8 @@
         </section>
 
         <!-- Okienko Breaking News pod Community Poll -->
-        <div class="breaking-news-card">
-          <div class="breaking-header">
-            <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
-          </div>
-          <h2 class="breaking-title txt-breaking-title">BEFT RATUJE NAS PRZED HIPERGAMIĄ!</h2>
-          <div class="news-media">
-            <img src="NEWS.jpg" alt="News Image">
-            <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
-          </div>
-          <p class="news-description txt-news-desc">
-            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.
-          </p>
-        </div>
+        <div id="breakingNewsContainerRankings"></div>
+        
 
         <!-- Przycisk Reset dostępny tylko dla Właściciela -->
 <div id="ownerResetContainer" style="display: none; margin-bottom: 10px;">
@@ -993,6 +982,18 @@
     const IMGBB_API_KEY = "b2443cd9b7815f2f3e2909250ec3bce3";
     const VOTE_COOLDOWN = 48 * 60 * 1000; // 48 minut
     let modalTimerInterval = null;
+
+    
+    auth.onAuthStateChanged((user) => {
+  currentUser = user;
+  updateAuthUI();
+  renderPosts();
+  renderNewsFeed(); // Odświeża przyciski edycji tłumaczeń w newsach
+  if (currentBreakingNews) {
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerRankings");
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerNews");
+  }
+});
     
 
     // Lista e-maili z uprawnieniami CHAD
@@ -1194,7 +1195,13 @@ const archivedPollVotes = {
         newsDesc: "Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.",
         newsPageTitle: "AKTUALNOŚCI",
         trendingNewsTitle: "🔥 Popularne wiadomości",
-        voteWait: "⏳ Odczekaj"
+        voteWait: "⏳ Odczekaj",
+        newsFormHeader: "➕ Dodaj wiadomość / Breaking News",
+        newsTitlePlaceholder: "Tytuł wiadomości",
+        newsDescPlaceholder: "Opis wiadomości...",
+        newsOverlayPlaceholder: "Napis na zdjęciu (opcjonalnie)",
+        chkBreakingLabel: "🚨 Ustaw jako Breaking News",
+        addImgNews: "Dodaj zdjęcie"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -1248,9 +1255,16 @@ const archivedPollVotes = {
         newsDesc: "Beft enters the fray at the most critical moment, returning to shoulder the burden of battling market imbalances. With a snap of his fingers, he summons the brutal paradigm of hypergamy, only to deliver a series of devastating blows without a moment’s hesitation, shattering it to dust. His predatory style and uncompromising stance send a clear signal to his brothers in the underground: the era of market inequality has just come to an end.",
         newsPageTitle: "NEWS",
         trendingNewsTitle: "🔥 Trending News",
-        voteWait: "⏳ Wait"
+        voteWait: "⏳ Wait",
+        newsFormHeader: "➕ Add News / Breaking News",
+        newsTitlePlaceholder: "News title",
+        newsDescPlaceholder: "News description...",
+        newsOverlayPlaceholder: "Image text overlay (optional)",
+        chkBreakingLabel: "🚨 Set as Breaking News",
+        addImgNews: "Add image"
       }
     };
+
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -2143,10 +2157,23 @@ db.ref('breakingNews').on('value', async (snap) => {
 });
 
 // Nasłuchiwanie listy zwykłych/archiwalnych Newsów
-db.ref('news').on('value', (snap) => {
+db.ref('news').on('value', async (snap) => {
   newsFeedCache = snap.val() || {};
+  
+  // Automatyczne tłumaczenie wpisów newsowych bez ręcznego tłumaczenia EN
+  for (const key of Object.keys(newsFeedCache)) {
+    const item = newsFeedCache[key];
+    if (!item.titleEn && !item.autoTitleEn) {
+      item.autoTitleEn = await getAutoTranslation(item.title);
+      item.autoDescEn = await getAutoTranslation(item.desc);
+      if (item.overlay) {
+        item.autoOverlayEn = await getAutoTranslation(item.overlay);
+      }
+    }
+  }
   renderNewsFeed();
 });
+    
     
 
     // Funkcja sortująca osoby wg głosów, ustalająca nowe miejsca (1-15) i zerująca głosy
@@ -2228,7 +2255,11 @@ db.ref('news').on('value', (snap) => {
 
       document.getElementById("txt-news-page-title").innerText = i18n[lang].newsPageTitle;
       document.getElementById("txt-trending-news-title").innerText = i18n[lang].trendingNewsTitle;
-
+      document.getElementById("newsTitleInput").placeholder = i18n[lang].newsTitlePlaceholder;
+      document.getElementById("newsDescInput").placeholder = i18n[lang].newsDescPlaceholder;
+      document.getElementById("newsOverlayInput").placeholder = i18n[lang].newsOverlayPlaceholder;
+      document.getElementById("txt-add-news-img").innerText = i18n[lang].addImgNews;
+      
       document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
       document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
       document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
@@ -2246,7 +2277,14 @@ db.ref('news').on('value', (snap) => {
       renderHallOfFame();
       updateAuthUI();
       renderPosts();
-
+      renderNewsFeed();
+      
+  if (currentBreakingNews) {
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerRankings");
+    renderBreakingNewsCard(currentBreakingNews, "breakingNewsContainerNews");
+  }
+    }
+    
       if (activeChadId !== null) {
         const chad = chadsData.find(c => c.id === activeChadId);
         if (chad) {
