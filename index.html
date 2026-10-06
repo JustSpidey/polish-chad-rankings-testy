@@ -871,19 +871,20 @@
 
         <!-- Okienko Breaking News pod Community Poll -->
         <!-- Dynamiczny widget Breaking News na Stronie Główniej -->
-        <div class="breaking-news-card" id="breakingNewsHomeContainer" style="display: none;"></div>
-          <div class="breaking-header">
-            <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
-          </div>
-          <h2 class="breaking-title txt-breaking-title">BEFT RATUJE NAS PRZED HIPERGAMIĄ!</h2>
-          <div class="news-media">
-            <img src="NEWS.jpg" alt="News Image">
-            <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
-          </div>
-          <p class="news-description txt-news-desc">
-            Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.
-          </p>
+        <div class="breaking-news-card" id="breakingNewsHomeContainer" style="display: none;">
+  <div class="breaking-header">
+    <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
+  </div>
+  <h2 class="breaking-title txt-breaking-title">BEFT RATUJE NAS PRZED HIPERGAMIĄ!</h2>
+  <div class="news-media">
+    <img src="NEWS.jpg" alt="News Image">
+    <div class="media-overlay-text txt-media-overlay">"Beft vs Hipergamia" ❤️😭</div>
+  </div>
+  <p class="news-description txt-news-desc">
+    Beft wkracza do gry w najtrudniejszym momencie...
+  </p>
         </div>
+        
 
         <!-- Przycisk Reset dostępny tylko dla Właściciela -->
 <div id="ownerResetContainer" style="display: none; margin-bottom: 10px;">
@@ -904,13 +905,13 @@
       </div>
 
       <!-- WIDOK NEWS --> 
-      <div id="view-news" class="tab-view hidden">
+<div id="view-news" class="tab-view hidden">
   <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
 
   <!-- Dynamiczny widget Breaking News w Aktualnościach -->
   <div class="breaking-news-card" id="breakingNewsPageContainer" style="display: none;"></div>
 
-  <!-- Formularz dodawania nowości (Widoczny TYLKO dla WŁAŚCICIELA, CHAD i MOD) -->
+  <!-- Formularz dodawania nowości -->
   <div class="news-create-card" id="newsCreateCardContainer" style="display: none;">
     <h3 style="font-size: 1rem; color: var(--text); font-weight: 800;">➕ Dodaj nową wiadomość</h3>
     
@@ -934,7 +935,7 @@
 
     <div class="news-form-group">
       <label class="news-form-label">URL Zdjęcia</label>
-      <input type="text" class="news-form-input" id="newsImageInput" placeholder="https://i.imgur.com/... lub nazwa pliku (np. NEWS.jpg)">
+      <input type="text" class="news-form-input" id="newsImageInput" placeholder="https://i.imgur.com/... lub NEWS.jpg">
     </div>
 
     <div class="news-form-group">
@@ -958,7 +959,8 @@
 
   <!-- Dynamiczna lista archiwalnych wpisów -->
   <div id="newsPostsFeed" class="posts-feed"></div>
-      </div>
+</div>
+      
   
         <!-- Okienko Breaking News w zakładce News -->
         <div class="breaking-news-card">
