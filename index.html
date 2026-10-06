@@ -1125,9 +1125,33 @@
 
     // --- 1. RANGI I UPRAWNIENIA ---
 const MOD_EMAILS = [
-  "platekkacper09@gmail.com", // Zamień/uzupełnij własnymi e-mailami moderatorów
+  "platekkacper09@gmail.com", // Adresy e-mail moderatorów
   "moderator2@gmail.com"
 ];
+
+function getUserRole(user) {
+  if (!user || !user.email) return null;
+  const email = user.email.toLowerCase();
+  
+  if (email === ADMIN_EMAIL.toLowerCase()) return "WŁAŚCICIEL";
+  if (CHAD_EMAILS.map(e => e.toLowerCase()).includes(email)) return "CHAD";
+  if (MOD_EMAILS.map(e => e.toLowerCase()).includes(email)) return "MOD";
+  
+  return null;
+}
+
+function canPostNews() {
+  const role = getUserRole(currentUser);
+  return role === "WŁAŚCICIEL" || role === "CHAD" || role === "MOD";
+}
+
+function getRoleBadgeHTML(role) {
+  if (role === 'WŁAŚCICIEL') return getOwnerBadgeHTML();
+  if (role === 'CHAD') return getChadBadgeHTML();
+  if (role === 'MOD') return `<span class="mod-badge">[MOD]</span>`;
+  return '';
+}
+    
 
     const firebaseConfig = {
       apiKey: "AIzaSyCJDcay4pyauLgGQLloTrf1kp2GjXoQmTA",
@@ -1673,6 +1697,18 @@ async function castPollVote() {
     if (overlay) overlay.style.display = "flex";
   }
     }
+    const originalUpdateAuthUI = updateAuthUI;
+updateAuthUI = function() {
+  originalUpdateAuthUI();
+
+  const newsFormCard = document.getElementById("newsCreateCardContainer");
+  if (newsFormCard) {
+    newsFormCard.style.display = canPostNews() ? "flex" : "none";
+  }
+
+  renderBreakingNewsUI();
+  renderNewsPostsUI();
+};
     
 
     function handleAuthAction() {
@@ -1885,6 +1921,259 @@ function deleteComment(postId, commentId) {
         btn.innerText = i18n[currentLang].translateBtn;
       }
     }
+
+    // --- 2. USŁUGA TŁUMACZEŃ (API) ---
+async function translateText(text, sourceLang, targetLang) {
+  if (!text || text.trim() === "") return "";
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
+    const data = await res.json();
+    if (data && data.responseData && data.responseData.translatedText) {
+      return data.responseData.translatedText;
+    }
+  } catch (err) {
+    console.error("Błąd tłumaczenia API:", err);
+  }
+  return text;
+}
+
+// --- 3. ZAPIS I AUTOMATYCZNA ARCHIWIZACJA BREAKING NEWS ---
+async function saveNewsPost() {
+  if (!canPostNews()) {
+    alert("Brak uprawnień do publikacji!");
+    return;
+  }
+
+  const titleInput = document.getElementById("newsTitleInput")?.value.trim() || "";
+  const descInput = document.getElementById("newsDescInput")?.value.trim() || "";
+  const imageInput = document.getElementById("newsImageInput")?.value.trim() || "";
+  const overlayInput = document.getElementById("newsOverlayInput")?.value.trim() || "";
+  const isBreaking = document.getElementById("newsIsBreakingCheckbox")?.checked || false;
+  const inputLang = document.getElementById("newsInputLangSelect")?.value || "pl";
+
+  if (!titleInput || !descInput) {
+    alert("Wypełnij przynajmniej Tytuł i Treść wiadomości.");
+    return;
+  }
+
+  const btn = document.getElementById("btnPublishNews");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Trwa tłumaczenie i zapisywanie...";
+  }
+
+  try {
+    const targetLang = inputLang === 'pl' ? 'en' : 'pl';
+
+    const [transTitle, transDesc, transOverlay] = await Promise.all([
+      translateText(titleInput, inputLang, targetLang),
+      translateText(descInput, inputLang, targetLang),
+      overlayInput ? translateText(overlayInput, inputLang, targetLang) : Promise.resolve("")
+    ]);
+
+    const newsPayload = {
+      title_pl: inputLang === 'pl' ? titleInput : transTitle,
+      title_en: inputLang === 'en' ? titleInput : transTitle,
+      desc_pl: inputLang === 'pl' ? descInput : transDesc,
+      desc_en: inputLang === 'en' ? descInput : transDesc,
+      overlay_pl: inputLang === 'pl' ? overlayInput : transOverlay,
+      overlay_en: inputLang === 'en' ? overlayInput : transOverlay,
+      imageUrl: imageInput || "NEWS.jpg",
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      authorUid: currentUser.uid,
+      authorEmail: currentUser.email,
+      authorRole: getUserRole(currentUser)
+    };
+
+    if (isBreaking) {
+      const currentBreakingSnap = await db.ref('breakingNews').once('value');
+      const oldBreaking = currentBreakingSnap.val();
+
+      if (oldBreaking) {
+        await db.ref('newsPosts').push(oldBreaking);
+      }
+
+      await db.ref('breakingNews').set(newsPayload);
+    } else {
+      await db.ref('newsPosts').push(newsPayload);
+    }
+
+    if (document.getElementById("newsTitleInput")) document.getElementById("newsTitleInput").value = "";
+    if (document.getElementById("newsDescInput")) document.getElementById("newsDescInput").value = "";
+    if (document.getElementById("newsImageInput")) document.getElementById("newsImageInput").value = "";
+    if (document.getElementById("newsOverlayInput")) document.getElementById("newsOverlayInput").value = "";
+    if (document.getElementById("newsIsBreakingCheckbox")) document.getElementById("newsIsBreakingCheckbox").checked = false;
+
+    alert("Pomyślnie opublikowano wiadomość!");
+  } catch (err) {
+    alert("Błąd podczas zapisywania: " + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = "Opublikuj wiadomość";
+    }
+  }
+}
+
+// --- 4. RENDEROWANIE BREAKING NEWS & NEWS POSTS ---
+let breakingNewsCache = null;
+let newsPostsCache = {};
+
+function renderBreakingNewsUI() {
+  const containers = [
+    document.getElementById("breakingNewsHomeContainer"),
+    document.getElementById("breakingNewsPageContainer")
+  ];
+
+  containers.forEach(container => {
+    if (!container) return;
+    if (!breakingNewsCache) {
+      container.style.display = "none";
+      return;
+    }
+
+    container.style.display = "flex";
+
+    const title = currentLang === 'pl' ? breakingNewsCache.title_pl : breakingNewsCache.title_en;
+    const desc = currentLang === 'pl' ? breakingNewsCache.desc_pl : breakingNewsCache.desc_en;
+    const overlay = currentLang === 'pl' ? breakingNewsCache.overlay_pl : breakingNewsCache.overlay_en;
+    const roleBadge = getRoleBadgeHTML(breakingNewsCache.authorRole);
+
+    const canEdit = currentUser && (
+      currentUser.uid === breakingNewsCache.authorUid ||
+      getUserRole(currentUser) === "WŁAŚCICIEL" ||
+      getUserRole(currentUser) === "MOD"
+    );
+
+    container.innerHTML = `
+      <div class="breaking-header">
+        <span>🚨</span> <span>${i18n[currentLang]?.breakingHeader || 'NAJNOWSZE WIADOMOŚCI'}</span> <span>🚨</span>
+      </div>
+      <h2 class="breaking-title">${title || ''}</h2>
+      ${breakingNewsCache.imageUrl ? `
+        <div class="news-media">
+          <img src="${breakingNewsCache.imageUrl}" alt="News Image">
+          ${overlay ? `<div class="media-overlay-text">${overlay}</div>` : ''}
+        </div>
+      ` : ''}
+      <p class="news-description">${desc || ''}</p>
+      <div style="font-size:0.75rem; color:var(--subtext); width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <span>Autor: ${breakingNewsCache.authorEmail || 'System'}${roleBadge}</span>
+        ${canEdit ? `<button class="auth-btn-small" style="font-size:0.7rem; padding:4px 8px;" onclick="openEditNewsModal('breakingNews')">✏️ Edytuj / Popraw tłumaczenie</button>` : ''}
+      </div>
+    `;
+  });
+}
+
+function renderNewsPostsUI() {
+  const container = document.getElementById("newsPostsFeed");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const keys = Object.keys(newsPostsCache);
+  if (keys.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak wiadomości w archiwum.</p>`;
+    return;
+  }
+
+  const postsArray = keys.map(k => ({ id: k, ...newsPostsCache[k] })).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  postsArray.forEach(post => {
+    const title = currentLang === 'pl' ? post.title_pl : post.title_en;
+    const desc = currentLang === 'pl' ? post.desc_pl : post.desc_en;
+    const overlay = currentLang === 'pl' ? post.overlay_pl : post.overlay_en;
+    const roleBadge = getRoleBadgeHTML(post.authorRole);
+
+    const canEdit = currentUser && (
+      currentUser.uid === post.authorUid ||
+      getUserRole(currentUser) === "WŁAŚCICIEL" ||
+      getUserRole(currentUser) === "MOD"
+    );
+
+    const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString() : '';
+
+    const card = document.createElement("div");
+    card.className = "news-post-card";
+    card.innerHTML = `
+      <div class="post-header">
+        <span class="post-author">${post.authorEmail || 'Autor'}${roleBadge}</span>
+        <span class="post-time">${postDate}</span>
+      </div>
+      <h3 style="font-size:1.1rem; font-weight:800; color:#fff;">${title || ''}</h3>
+      ${post.imageUrl ? `
+        <div class="news-media">
+          <img src="${post.imageUrl}" alt="News Image">
+          ${overlay ? `<div class="media-overlay-text">${overlay}</div>` : ''}
+        </div>
+      ` : ''}
+      <p class="news-description" style="color: #d2c8e0;">${desc || ''}</p>
+      ${canEdit ? `
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+          <button class="auth-btn-small" style="font-size:0.7rem; padding:4px 8px;" onclick="openEditNewsModal('newsPosts/${post.id}')">✏️️ Edytuj / Popraw tłumaczenie</button>
+          <button class="delete-btn-admin" onclick="deleteNewsPost('${post.id}')">Usuń</button>
+        </div>
+      ` : ''}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// --- 5. OBSŁUGA MODALU EDYCJI TŁUMACZEŃ ---
+let currentEditingPath = null;
+
+function openEditNewsModal(path) {
+  currentEditingPath = path;
+  db.ref(path).once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    if (document.getElementById("editNewsTitlePl")) document.getElementById("editNewsTitlePl").value = data.title_pl || "";
+    if (document.getElementById("editNewsTitleEn")) document.getElementById("editNewsTitleEn").value = data.title_en || "";
+    if (document.getElementById("editNewsDescPl")) document.getElementById("editNewsDescPl").value = data.desc_pl || "";
+    if (document.getElementById("editNewsDescEn")) document.getElementById("editNewsDescEn").value = data.desc_en || "";
+    if (document.getElementById("editNewsOverlayPl")) document.getElementById("editNewsOverlayPl").value = data.overlay_pl || "";
+    if (document.getElementById("editNewsOverlayEn")) document.getElementById("editNewsOverlayEn").value = data.overlay_en || "";
+    if (document.getElementById("editNewsImageUrl")) document.getElementById("editNewsImageUrl").value = data.imageUrl || "";
+
+    const modal = document.getElementById("editNewsModal");
+    if (modal) modal.style.display = "flex";
+  });
+}
+
+function closeEditNewsModal() {
+  const modal = document.getElementById("editNewsModal");
+  if (modal) modal.style.display = "none";
+  currentEditingPath = null;
+}
+
+async function saveEditedNews() {
+  if (!currentEditingPath) return;
+
+  const updatedData = {
+    title_pl: document.getElementById("editNewsTitlePl")?.value.trim() || "",
+    title_en: document.getElementById("editNewsTitleEn")?.value.trim() || "",
+    desc_pl: document.getElementById("editNewsDescPl")?.value.trim() || "",
+    desc_en: document.getElementById("editNewsDescEn")?.value.trim() || "",
+    overlay_pl: document.getElementById("editNewsOverlayPl")?.value.trim() || "",
+    overlay_en: document.getElementById("editNewsOverlayEn")?.value.trim() || "",
+    imageUrl: document.getElementById("editNewsImageUrl")?.value.trim() || ""
+  };
+
+  try {
+    await db.ref(currentEditingPath).update(updatedData);
+    closeEditNewsModal();
+    alert("Korekta została pomyślnie zapisana!");
+  } catch (err) {
+    alert("Błąd podczas zapisywania: " + err.message);
+  }
+}
+
+function deleteNewsPost(postId) {
+  if (!confirm("Czy na pewno chcesz usunąć ten wpis z wiadomości?")) return;
+  db.ref(`newsPosts/${postId}`).remove();
+      }
+    
 
     function renderPosts() {
   const container = document.getElementById("postsContainer");
@@ -2173,6 +2462,8 @@ function deleteComment(postId, commentId) {
       renderHallOfFame();
       updateAuthUI();
       renderPosts();
+      renderBreakingNewsUI();
+      renderNewsPostsUI();
 
       if (activeChadId !== null) {
         const chad = chadsData.find(c => c.id === activeChadId);
@@ -2342,6 +2633,15 @@ function applyTimerToButton(lastVoteTime) {
     });
   }
     
+    db.ref('breakingNews').on('value', snapshot => {
+  breakingNewsCache = snapshot.val();
+  renderBreakingNewsUI();
+});
+
+db.ref('newsPosts').on('value', snapshot => {
+  newsPostsCache = snapshot.val() || {};
+  renderNewsPostsUI();
+});
     
     
     function closeModal() {
