@@ -1,0 +1,1181 @@
+```html
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-site-verification" content="-oGEEEyoPbsyOVH7EOF3pAKPJ49IxacUo1LY5g5sgoA" />
+  <meta name="description" content="Cotygodniowy ranking najbardziej wpływowych chadów w polskiej społeczności, aktualności i społeczność.">
+  <meta property="og:title" content="Polish Chad Rankings & News Platform">
+  <title>Polish Chad Rankings & Community</title>
+
+  <!-- Biblioteki Firebase SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: radial-gradient(circle at top, #1e0c38 0%, #08070c 100%);
+      --card-bg: #12111a;
+      --purple-main: #a855f7;
+      --purple-light: #c084fc;
+      --purple-gradient: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%);
+      --gold-accent: #facc15;
+      --green-mod: #28a745;
+      --blue-owner: #2563eb;
+      --text: #ffffff;
+      --subtext: #8e8d9f;
+      --accent-red: #ff2a4b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: #08070c;
+      background-image: var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 32px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(12, 10, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .header-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-weight: 800;
+      color: var(--purple-light);
+    }
+
+    .header-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    h1 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .flag-btn {
+      font-size: 1.3rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: all 0.2s ease;
+      filter: grayscale(40%);
+    }
+
+    .flag-btn.active {
+      opacity: 1;
+      transform: scale(1.15);
+      filter: grayscale(0%);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .tab {
+      color: var(--subtext);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-bottom-color: var(--purple-main);
+    }
+
+    .content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .tab-view {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .tab-view.hidden {
+      display: none !important;
+    }
+
+    .role-badge {
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-left: 6px;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-owner {
+      background: rgba(37, 99, 235, 0.2);
+      color: var(--blue-owner);
+      border: 1px solid rgba(37, 99, 235, 0.4);
+    }
+    .role-chad {
+      background: rgba(250, 204, 21, 0.2);
+      color: var(--gold-accent);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+    }
+    .role-mod {
+      background: rgba(40, 167, 69, 0.2);
+      color: var(--green-mod);
+      border: 1px solid rgba(40, 167, 69, 0.4);
+    }
+
+    .breaking-news-card {
+      background: linear-gradient(180deg, rgba(45, 12, 24, 0.7) 0%, rgba(20, 15, 29, 0.95) 100%);
+      border: 1px solid rgba(255, 42, 75, 0.4);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 42, 75, 0.2);
+      position: relative;
+    }
+
+    @keyframes blink-red {
+      0%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 10px rgba(255, 42, 75, 0.8), 0 0 20px rgba(255, 42, 75, 0.4);
+      }
+      50% { opacity: 0.3; text-shadow: none; }
+    }
+
+    .breaking-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-red);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      animation: blink-red 1.2s infinite ease-in-out;
+    }
+
+    .breaking-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .news-media {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .news-media img {
+      width: 100%;
+      height: auto;
+      max-height: 280px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .media-overlay-text {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .news-description {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: #d2c8e0;
+      font-weight: 500;
+      text-align: left;
+      width: 100%;
+    }
+
+    .news-card-item {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .news-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .news-card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .news-card-meta {
+      font-size: 0.72rem;
+      color: var(--subtext);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .create-news-box {
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--purple-light);
+      text-transform: uppercase;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--purple-main);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--accent-red);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      align-self: flex-start;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: var(--purple-light);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      margin-top: 4px;
+    }
+
+    .edit-btn:hover {
+      background: var(--purple-main);
+      color: #ffffff;
+    }
+
+    .user-auth-bar {
+      background: #100d1a;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-info-text { font-size: 0.85rem; font-weight: 700; color: #fff; }
+
+    .auth-btn-small {
+      background: var(--purple-gradient);
+      border: none;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .auth-btn-small:hover { opacity: 0.9; }
+
+    .rankings-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover, .card:active {
+      background: rgba(168, 85, 247, 0.1);
+      border-color: var(--purple-main);
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
+    }
+
+    .card-left { display: flex; align-items: center; gap: 12px; }
+
+    .rank-box {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1rem; color: #ffffff;
+      background: rgba(255, 255, 255, 0.1); flex-shrink: 0;
+    }
+
+    .rank-1 { background: linear-gradient(180deg, #facc15 0%, #ca8a04 100%); color: #000; }
+    .rank-2 { background: linear-gradient(180deg, #f1f5f9 0%, #94a3b8 100%); color: #000; }
+    .rank-3 { background: linear-gradient(180deg, #d97706 0%, #78350f 100%); color: #fff; }
+
+    .avatar {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08); object-fit: cover;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: var(--subtext);
+    }
+
+    .info { display: flex; flex-direction: column; }
+    .name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .subtext { font-size: 0.75rem; color: var(--subtext); margin-top: 2px; }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 2000;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: #12101c;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 18px;
+      padding: 24px;
+      position: relative;
+      border: 1px solid var(--purple-main);
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+    }
+
+    .code-block {
+      background: #08070c;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #34d399;
+      text-align: left;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border: 1px solid rgba(255,255,255,0.1);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <div class="header-top">
+        <div class="header-logo">🗿</div>
+        <h1>POLISH CHAD RANKINGS</h1>
+        <div class="lang-switch">
+          <span class="flag-btn active" id="flag-pl" onclick="setLanguage('pl')">🇵🇱</span>
+          <span class="flag-btn" id="flag-en" onclick="setLanguage('en')">🇬🇧</span>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <span class="tab active" id="txt-tab-rankings" onclick="switchTab('rankings')">📋 Rankingi</span>
+        <span class="tab" id="txt-tab-news" onclick="switchTab('news')">📰 Aktualności</span>
+        <span class="tab" id="txt-tab-community" onclick="switchTab('community')">💬 Społeczność</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div id="view-rankings" class="tab-view">
+        <section class="hero-section" style="text-align: center; display: flex; flex-direction: column; gap: 8px;">
+          <div class="badge-updated" id="timer-text" style="align-self: center; background: rgba(168,85,247,0.15); color: var(--purple-light); padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.8rem;">⏱️ Ładowanie...</div>
+          <p class="hero-description" id="txt-hero" style="font-size: 0.85rem; color: var(--subtext);">
+            Cotygodniowo aktualizowany ranking najbardziej wpływowych chadów w polskiej społeczności.
+          </p>
+        </section>
+
+        <!-- Breaking News Container na stronie głównej -->
+        <div id="homeBreakingNewsContainer"></div>
+
+        <section class="rankings-list" id="rankings"></section>
+      </div>
+
+      <div id="view-news" class="tab-view hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h1 id="txt-news-page-title" style="font-size: 1.3rem;">AKTUALNOŚCI</h1>
+          <button class="auth-btn-small" style="background: rgba(255,255,255,0.1); font-size: 0.7rem;" onclick="openSecurityRulesModal()">🛡️ Firebase Security Rules</button>
+        </div>
+
+        <!-- FORMULARZ DODAWANIA NEWSÓW (Widoczny TYLKO dla CHAD / WŁAŚCICIEL / MOD) -->
+        <div id="newsCreateFormContainer" style="display: none;">
+          <div class="create-news-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 id="txt-create-news-title" style="font-size: 0.95rem; color: var(--purple-light); font-weight: 800;">➕ DODAJ NOWY WPIS / BREAKING NEWS</h3>
+              <span id="userNewsBadge"></span>
+            </div>
+
+            <form onsubmit="handleNewsSubmit(event)">
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label id="lbl-input-lang">Język wprowadzany / Input Language:</label>
+                <select id="newsInputLangSelect" class="form-select">
+                  <option value="pl">🇵🇱 Polski (Automatyczne tłumaczenie na Angielski)</option>
+                  <option value="en">🇬🇧 English (Automatic translation to Polish)</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label id="lbl-news-title">Tytuł wpisu *</label>
+                <input type="text" id="newsTitleInput" class="form-input" placeholder="Wpisz tytuł..." required>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label id="lbl-news-desc">Opis / Treść wpisu *</label>
+                <textarea id="newsDescInput" class="form-textarea" rows="3" placeholder="Wpisz szczegółową treść..." required></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label id="lbl-news-img">URL Zdjęcia / Grafiki</label>
+                <input type="url" id="newsImageInput" class="form-input" placeholder="https://domena.pl/obrazek.jpg">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label id="lbl-news-overlay">Napis na zdjęciu (Overlay text)</label>
+                <input type="text" id="newsOverlayInput" class="form-input" placeholder='np. "Beft vs Hipergamia"'>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="newsIsBreakingCheckbox">
+                  <span id="lbl-is-breaking">🚨 Opublikuj jako "BREAKING NEWS" (Archiwizuje stary wpis)</span>
+                </label>
+              </div>
+
+              <button type="submit" id="btnSubmitNews" class="auth-btn-small" style="width: 100%; padding: 10px; font-size: 0.85rem;">
+                🚀 Opublikuj Wpis
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Główny widget Breaking News w Aktualnościach -->
+        <div id="tabBreakingNewsContainer"></div>
+
+        <div class="section-title-news" id="txt-trending-news-title" style="font-weight: 800; font-size: 1rem; color: var(--purple-light); margin-top: 10px;">
+          🔥 Archiwum Wiadomości / News Feed
+        </div>
+
+        <div id="newsFeedContainer" style="display: flex; flex-direction: column; gap: 14px;"></div>
+      </div>
+
+      <div id="view-community" class="tab-view hidden">
+        <div class="user-auth-bar">
+          <span class="user-info-text" id="userAuthStatus">Niezalogowany</span>
+          <button class="auth-btn-small" id="btnAuthAction" onclick="handleAuthAction()">Zaloguj / Zarejestruj</button>
+        </div>
+
+        <div class="posts-feed" id="postsContainer" style="margin-top: 10px;"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL EDYCJI TŁUMACZEŃ -->
+  <div class="modal" id="editTranslationModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeEditModal()">&times;</button>
+      <h2 id="txt-edit-modal-title" style="font-size: 1.1rem; color: var(--purple-light); margin-bottom: 14px; text-align: center;">
+        ✏️ Edycja Tłumaczenia / Edit Content
+      </h2>
+
+      <form onsubmit="saveTranslationEdit(event)">
+        <input type="hidden" id="editNodePath">
+        <input type="hidden" id="editPostKey">
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #facc15;">🇵🇱 Tytuł (Polski)</label>
+          <input type="text" id="editTitlePl" class="form-input" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #60a5fa;">🇬🇧 Title (English)</label>
+          <input type="text" id="editTitleEn" class="form-input" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #facc15;">🇵🇱 Opis (Polski)</label>
+          <textarea id="editDescPl" class="form-textarea" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #60a5fa;">🇬🇧 Description (English)</label>
+          <textarea id="editDescEn" class="form-textarea" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #facc15;">🇵🇱 Napis na zdjęciu (Polski)</label>
+          <input type="text" id="editOverlayPl" class="form-input">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="color: #60a5fa;">🇬🇧 Image Overlay (English)</label>
+          <input type="text" id="editOverlayEn" class="form-input">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="color: var(--subtext);">URL Zdjęcia</label>
+          <input type="url" id="editImageUrl" class="form-input">
+        </div>
+
+        <button type="submit" class="auth-btn-small" style="width: 100%; padding: 10px; font-size: 0.85rem;">
+          💾 Zapisz Zmiany w Bazie Firebase
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL LOGOWANIA / REJESTRACJI -->
+  <div class="modal" id="authModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+      <h2 id="txt-auth-title" style="margin-bottom: 14px; text-align: center;">Konto Chad / Moderator</h2>
+      <input type="email" class="auth-input" id="authEmail" placeholder="E-mail" style="width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
+      <input type="password" class="auth-input" id="authPassword" placeholder="Hasło" style="width: 100%; padding: 10px; margin-bottom: 14px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;">
+      <div style="display:flex; gap:10px;">
+        <button class="auth-btn-small" style="flex:1; padding: 10px;" onclick="handleLogin()" id="txt-login-btn">Zaloguj</button>
+        <button class="auth-btn-small" style="flex:1; padding: 10px; background: rgba(255,255,255,0.1);" onclick="handleRegister()" id="txt-register-btn">Zarejestruj</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REGUL FIREBASE -->
+  <div class="modal" id="securityRulesModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeSecurityRulesModal()">&times;</button>
+      <h2 style="font-size: 1.1rem; color: #34d399; margin-bottom: 10px;">🛡️ Firebase Security Rules</h2>
+      <p style="font-size: 0.78rem; color: var(--subtext); margin-bottom: 10px;">
+        Skopiuj poniższe reguły bezpieczeństwa do konsoli Firebase Realtime Database:
+      </p>
+      <div class="code-block" id="securityRulesCode">
+{
+  "rules": {
+    "breakingNews": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "newsPosts": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "users": {
+      ".read": true,
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
+      </div>
+      <button class="auth-btn-small" style="margin-top: 12px; width: 100%;" onclick="copySecurityRules()">📋 Skopiuj Reguły Do Schowka</button>
+    </div>
+  </div>
+
+  <script>
+    let currentLang = "pl";
+    let currentUser = null;
+    let currentUserRole = "GUEST";
+    let breakingNewsData = null;
+    let newsPostsCache = {};
+
+    const ADMIN_EMAIL = "kplatek.2020@gmail.com";
+    const CHAD_EMAILS = [
+      "frankigra2412@gmail.com",
+      "domi_628@wp.pl",
+      "samulyt56@gmail.com",
+      "fabianbachar2000@gmail.com",
+      "antekantix@gmail.com"
+    ];
+    // Lista e-maili moderatorów z odznaką MOD
+    const MOD_EMAILS = [
+      "moderator@chad.pl",
+      "mod@polishchad.pl"
+    ];
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJDcay4pyauLgGQLloTrf1kp2GjXoQmTA",
+      authDomain: "polish-chad-rankings.firebaseapp.com",
+      databaseURL: "https://polish-chad-rankings-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "polish-chad-rankings",
+      storageBucket: "polish-chad-rankings.appspot.com",
+      messagingSenderId: "941798583866",
+      appId: "1:941798583866:web:d79633db32004e07c74f03"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      updateUserRole();
+      updateAuthUI();
+      renderNewsView();
+    });
+
+    function updateUserRole() {
+      if (!currentUser) {
+        currentUserRole = "GUEST";
+        return;
+      }
+      const email = (currentUser.email || '').toLowerCase();
+      if (email === ADMIN_EMAIL.toLowerCase()) {
+        currentUserRole = "WŁAŚCICIEL";
+      } else if (CHAD_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+        currentUserRole = "CHAD";
+      } else if (MOD_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+        currentUserRole = "MOD";
+      } else {
+        currentUserRole = "USER";
+      }
+    }
+
+    function canPostNews() {
+      return ["WŁAŚCICIEL", "CHAD", "MOD"].includes(currentUserRole);
+    }
+
+    function canEditNews(authorUid) {
+      if (!currentUser) return false;
+      if (["WŁAŚCICIEL", "CHAD", "MOD"].includes(currentUserRole)) return true;
+      return currentUser.uid === authorUid;
+    }
+
+    async function translateText(text, sourceLang, targetLang) {
+      if (!text || !text.trim()) return '';
+      try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.responseData && data.responseData.translatedText) {
+          return data.responseData.translatedText;
+        }
+      } catch (err) {
+        console.warn("Błąd API tłumaczeń MyMemory:", err);
+      }
+      return text; // Fallback do oryginalnego tekstu
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('flag-pl').classList.toggle('active', lang === 'pl');
+      document.getElementById('flag-en').classList.toggle('active', lang === 'en');
+      renderAllViews();
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+
+      document.getElementById(`txt-tab-${tabName}`).classList.add('active');
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+    }
+
+    db.ref('breakingNews').on('value', (snapshot) => {
+      breakingNewsData = snapshot.val();
+      renderBreakingNews();
+    });
+
+    db.ref('newsPosts').on('value', (snapshot) => {
+      newsPostsCache = snapshot.val() || {};
+      renderNewsFeed();
+    });
+
+    async function handleNewsSubmit(e) {
+      e.preventDefault();
+      if (!canPostNews()) {
+        alert("Brak uprawnień do publikowania w Aktualnościach!");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitNews');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "⏳ Tłumaczenie i zapisywanie...";
+
+      try {
+        const inputLang = document.getElementById('newsInputLangSelect').value;
+        const rawTitle = document.getElementById('newsTitleInput').value.trim();
+        const rawDesc = document.getElementById('newsDescInput').value.trim();
+        const rawImageUrl = document.getElementById('newsImageInput').value.trim() || "https://placehold.co/600x400/1e0c38/a855f7?text=Polish+Chad+News";
+        const rawOverlay = document.getElementById('newsOverlayInput').value.trim();
+        const isBreaking = document.getElementById('newsIsBreakingCheckbox').checked;
+
+        let title_pl, title_en, desc_pl, desc_en, overlay_pl, overlay_en;
+
+        if (inputLang === 'pl') {
+          title_pl = rawTitle;
+          desc_pl = rawDesc;
+          overlay_pl = rawOverlay;
+          title_en = await translateText(rawTitle, 'pl', 'en');
+          desc_en = await translateText(rawDesc, 'pl', 'en');
+          overlay_en = await translateText(rawOverlay, 'pl', 'en');
+        } else {
+          title_en = rawTitle;
+          desc_en = rawDesc;
+          overlay_en = rawOverlay;
+          title_pl = await translateText(rawTitle, 'en', 'pl');
+          desc_pl = await translateText(rawDesc, 'en', 'pl');
+          overlay_pl = await translateText(rawOverlay, 'en', 'pl');
+        }
+
+        const newsPayload = {
+          title_pl,
+          title_en,
+          desc_pl,
+          desc_en,
+          overlay_pl,
+          overlay_en,
+          imageUrl: rawImageUrl,
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          authorUid: currentUser.uid,
+          authorRole: currentUserRole,
+          authorEmail: currentUser.email || ''
+        };
+
+        if (isBreaking) {
+          // Pobierz aktualny / stary wpis Breaking News
+          const snap = await db.ref('breakingNews').once('value');
+          const oldBreaking = snap.val();
+
+          if (oldBreaking && (oldBreaking.title_pl || oldBreaking.title_en)) {
+            // AUTOMATYCZNE PRZENIESIENIE (ARCHIWIZACJA) DO newsPosts
+            await db.ref('newsPosts').push(oldBreaking);
+          }
+
+          // Zapisz nowy wpis w breakingNews
+          await db.ref('breakingNews').set(newsPayload);
+        } else {
+          // Zwykły wpis do newsPosts
+          await db.ref('newsPosts').push(newsPayload);
+        }
+
+        // Czyszczenie formularza
+        document.getElementById('newsTitleInput').value = '';
+        document.getElementById('newsDescInput').value = '';
+        document.getElementById('newsImageInput').value = '';
+        document.getElementById('newsOverlayInput').value = '';
+        document.getElementById('newsIsBreakingCheckbox').checked = false;
+
+      } catch (err) {
+        console.error("Błąd podczas zapisywania posta:", err);
+        alert("Wystąpił błąd podczas zapisywania wpisu.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "🚀 Opublikuj Wpis";
+      }
+    }
+
+    function renderBreakingNews() {
+      const homeContainer = document.getElementById('homeBreakingNewsContainer');
+      const tabContainer = document.getElementById('tabBreakingNewsContainer');
+
+      if (!breakingNewsData) {
+        const defaultHtml = `
+          <div class="breaking-news-card">
+            <div class="breaking-header"><span>🚨</span> <span>${currentLang === 'pl' ? 'NAJNOWSZE WIADOMOŚCI' : 'BREAKING NEWS'}</span> <span>🚨</span></div>
+            <h2 class="breaking-title">BEFT RATUJE NAS PRZED HIPERGAMIĄ!</h2>
+            <div class="news-media">
+              <img src="https://placehold.co/600x400/1e0c38/a855f7?text=BEFT+NEWS" alt="News Image">
+              <div class="media-overlay-text">"Beft vs Hipergamia" ❤️😭</div>
+            </div>
+            <p class="news-description">
+              ${currentLang === 'pl' ? 'Beft wkracza do gry w najtrudniejszym momencie...' : 'Beft enters the game at the crucial moment...'}
+            </p>
+          </div>
+        `;
+        homeContainer.innerHTML = defaultHtml;
+        tabContainer.innerHTML = defaultHtml;
+        return;
+      }
+
+      const title = currentLang === 'pl' ? (breakingNewsData.title_pl || breakingNewsData.title_en) : (breakingNewsData.title_en || breakingNewsData.title_pl);
+      const desc = currentLang === 'pl' ? (breakingNewsData.desc_pl || breakingNewsData.desc_en) : (breakingNewsData.desc_en || breakingNewsData.desc_pl);
+      const overlay = currentLang === 'pl' ? (breakingNewsData.overlay_pl || breakingNewsData.overlay_en) : (breakingNewsData.overlay_en || breakingNewsData.overlay_pl);
+      const img = breakingNewsData.imageUrl;
+
+      const editBtnHtml = canEditNews(breakingNewsData.authorUid) ? `
+        <button class="edit-btn" onclick="openEditModal('breakingNews', null)">
+          ✏️ ${currentLang === 'pl' ? 'Edytuj / Popraw tłumaczenie' : 'Edit / Correct translation'}
+        </button>
+      ` : '';
+
+      const roleBadgeHtml = getRoleBadgeHtml(breakingNewsData.authorRole);
+
+      const html = `
+        <div class="breaking-news-card">
+          <div class="breaking-header">
+            <span>🚨</span> <span>${currentLang === 'pl' ? 'NAJNOWSZE WIADOMOŚCI' : 'BREAKING NEWS'}</span> <span>🚨</span>
+          </div>
+          <h2 class="breaking-title">${escapeHtml(title)}</h2>
+          ${img ? `
+            <div class="news-media">
+              <img src="${escapeHtml(img)}" alt="News Image" onerror="this.src='https://placehold.co/600x400/1e0c38/a855f7?text=Photo'">
+              ${overlay ? `<div class="media-overlay-text">${escapeHtml(overlay)}</div>` : ''}
+            </div>
+          ` : ''}
+          <p class="news-description">${escapeHtml(desc)}</p>
+          <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <span style="font-size:0.7rem; color:var(--subtext);">Autor: ${roleBadgeHtml}</span>
+            ${editBtnHtml}
+          </div>
+        </div>
+      `;
+
+      homeContainer.innerHTML = html;
+      tabContainer.innerHTML = html;
+    }
+
+    function renderNewsFeed() {
+      const container = document.getElementById('newsFeedContainer');
+      const keys = Object.keys(newsPostsCache).reverse();
+
+      if (keys.length === 0) {
+        container.innerHTML = `<p style="text-align:center; font-size:0.82rem; color:var(--subtext); font-style:italic;">Brak archiwalnych wiadomości.</p>`;
+        return;
+      }
+
+      let html = '';
+      keys.forEach(key => {
+        const item = newsPostsCache[key];
+        const title = currentLang === 'pl' ? (item.title_pl || item.title_en) : (item.title_en || item.title_pl);
+        const desc = currentLang === 'pl' ? (item.desc_pl || item.desc_en) : (item.desc_en || item.desc_pl);
+        const overlay = currentLang === 'pl' ? (item.overlay_pl || item.overlay_en) : (item.overlay_en || item.overlay_pl);
+        const img = item.imageUrl;
+
+        const editBtnHtml = canEditNews(item.authorUid) ? `
+          <button class="edit-btn" onclick="openEditModal('newsPosts', '${key}')">
+            ✏️ ${currentLang === 'pl' ? 'Edytuj / Popraw tłumaczenie' : 'Edit / Correct translation'}
+          </button>
+        ` : '';
+
+        const roleBadgeHtml = getRoleBadgeHtml(item.authorRole);
+
+        html += `
+          <div class="news-card-item">
+            <div class="news-card-header">
+              <span class="news-card-title">${escapeHtml(title)}</span>
+            </div>
+            ${img ? `
+              <div class="news-media">
+                <img src="${escapeHtml(img)}" alt="News Image" onerror="this.src='https://placehold.co/600x400/1e0c38/a855f7?text=Photo'">
+                ${overlay ? `<div class="media-overlay-text">${escapeHtml(overlay)}</div>` : ''}
+              </div>
+            ` : ''}
+            <p style="font-size:0.85rem; color:#d2c8e0; line-height:1.4;">${escapeHtml(desc)}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
+              <span class="news-card-meta">Autor: ${roleBadgeHtml}</span>
+              ${editBtnHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function getRoleBadgeHtml(role) {
+      if (role === 'WŁAŚCICIEL') return `<span class="role-badge role-owner">WŁAŚCICIEL</span>`;
+      if (role === 'CHAD') return `<span class="role-badge role-chad">CHAD</span>`;
+      if (role === 'MOD') return `<span class="role-badge role-mod">MOD</span>`;
+      return `<span style="color:var(--subtext);">Użytkownik</span>`;
+    }
+
+    function openEditModal(nodePath, postKey) {
+      let data = null;
+      if (nodePath === 'breakingNews') {
+        data = breakingNewsData;
+      } else {
+        data = newsPostsCache[postKey];
+      }
+
+      if (!data) return;
+
+      document.getElementById('editNodePath').value = nodePath;
+      document.getElementById('editPostKey').value = postKey || '';
+
+      document.getElementById('editTitlePl').value = data.title_pl || '';
+      document.getElementById('editTitleEn').value = data.title_en || '';
+      document.getElementById('editDescPl').value = data.desc_pl || '';
+      document.getElementById('editDescEn').value = data.desc_en || '';
+      document.getElementById('editOverlayPl').value = data.overlay_pl || '';
+      document.getElementById('editOverlayEn').value = data.overlay_en || '';
+      document.getElementById('editImageUrl').value = data.imageUrl || '';
+
+      document.getElementById('editTranslationModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editTranslationModal').style.display = 'none';
+    }
+
+    async function saveTranslationEdit(e) {
+      e.preventDefault();
+      const nodePath = document.getElementById('editNodePath').value;
+      const postKey = document.getElementById('editPostKey').value;
+
+      const updateData = {
+        title_pl: document.getElementById('editTitlePl').value.trim(),
+        title_en: document.getElementById('editTitleEn').value.trim(),
+        desc_pl: document.getElementById('editDescPl').value.trim(),
+        desc_en: document.getElementById('editDescEn').value.trim(),
+        overlay_pl: document.getElementById('editOverlayPl').value.trim(),
+        overlay_en: document.getElementById('editOverlayEn').value.trim(),
+        imageUrl: document.getElementById('editImageUrl').value.trim()
+      };
+
+      try {
+        if (nodePath === 'breakingNews') {
+          await db.ref('breakingNews').update(updateData);
+        } else {
+          await db.ref(`newsPosts/${postKey}`).update(updateData);
+        }
+        closeEditModal();
+      } catch (err) {
+        console.error("Błąd podczas edycji w Firebase:", err);
+        alert("Błąd zapisu poprawek w bazie danych.");
+      }
+    }
+
+    function updateAuthUI() {
+      const statusEl = document.getElementById('userAuthStatus');
+      const btnEl = document.getElementById('btnAuthAction');
+      const newsFormContainer = document.getElementById('newsCreateFormContainer');
+      const userNewsBadge = document.getElementById('userNewsBadge');
+
+      if (currentUser) {
+        statusEl.innerHTML = `${currentUser.email} ${getRoleBadgeHtml(currentUserRole)}`;
+        btnEl.innerText = "Wyloguj";
+
+        // Kontrola widoczności w DOM dla formularza Newsów
+        if (canPostNews()) {
+          newsFormContainer.style.display = 'block';
+          userNewsBadge.innerHTML = getRoleBadgeHtml(currentUserRole);
+        } else {
+          newsFormContainer.style.display = 'none';
+        }
+      } else {
+        statusEl.innerText = "Niezalogowany";
+        btnEl.innerText = "Zaloguj / Zarejestruj";
+        // Całkowicie ukryj dla gości
+        newsFormContainer.style.display = 'none';
+      }
+    }
+
+    function handleAuthAction() {
+      if (currentUser) {
+        auth.signOut();
+      } else {
+        document.getElementById('authModal').style.display = 'flex';
+      }
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').style.display = 'none';
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) {
+        alert("Błąd logowania: " + err.message);
+      }
+    }
+
+    async function handleRegister() {
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+      try {
+        await auth.createUserWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch (err) {
+        alert("Błąd rejestracji: " + err.message);
+      }
+    }
+
+    function openSecurityRulesModal() {
+      document.getElementById('securityRulesModal').style.display = 'flex';
+    }
+
+    function closeSecurityRulesModal() {
+      document.getElementById('securityRulesModal').style.display = 'none';
+    }
+
+    function copySecurityRules() {
+      const code = document.getElementById('securityRulesCode').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Skopiowano reguły bezpieczeństwa Firebase do schowka!");
+      });
+    }
+
+    function renderNewsView() {
+      renderBreakingNews();
+      renderNewsFeed();
+    }
+
+    function renderAllViews() {
+      renderNewsView();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
+```
