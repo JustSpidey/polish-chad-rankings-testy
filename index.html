@@ -723,6 +723,75 @@
       border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff;
       font-size: 0.85rem; outline: none;
     }
+
+    /* Odznaka MOD */
+.mod-badge {
+  color: #28a745; /* badge-success */
+  font-weight: 800;
+  font-size: 0.85em;
+  margin-left: 6px;
+  display: inline-block;
+}
+
+/* Formularz tworzenia wiadomości */
+.news-create-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.news-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.news-form-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--purple-light);
+}
+
+.news-form-input, .news-form-textarea, .news-form-select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.news-form-input:focus, .news-form-textarea:focus, .news-form-select:focus {
+  border-color: var(--purple-main);
+}
+
+.news-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--accent-red);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Poprawki do kart w feedzie wiadomości */
+.news-post-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
   </style>
 </head>
 <body>
@@ -801,7 +870,8 @@
         </section>
 
         <!-- Okienko Breaking News pod Community Poll -->
-        <div class="breaking-news-card">
+        <!-- Dynamiczny widget Breaking News na Stronie Główniej -->
+        <div class="breaking-news-card" id="breakingNewsHomeContainer" style="display: none;"></div>
           <div class="breaking-header">
             <span>🚨</span> <span class="txt-breaking-header">NAJNOWSZE WIADOMOŚCI</span> <span>🚨</span>
           </div>
@@ -835,8 +905,61 @@
 
       <!-- WIDOK NEWS --> 
       <div id="view-news" class="tab-view hidden">
-        <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
+  <h1 class="page-title" id="txt-news-page-title" style="font-size: 1.3rem; margin-bottom: 5px;">AKTUALNOŚCI</h1>
 
+  <!-- Dynamiczny widget Breaking News w Aktualnościach -->
+  <div class="breaking-news-card" id="breakingNewsPageContainer" style="display: none;"></div>
+
+  <!-- Formularz dodawania nowości (Widoczny TYLKO dla WŁAŚCICIELA, CHAD i MOD) -->
+  <div class="news-create-card" id="newsCreateCardContainer" style="display: none;">
+    <h3 style="font-size: 1rem; color: var(--text); font-weight: 800;">➕ Dodaj nową wiadomość</h3>
+    
+    <div class="news-form-group">
+      <label class="news-form-label">Język tworzonego wpisu</label>
+      <select class="news-form-select" id="newsInputLangSelect">
+        <option value="pl">Polski (automatyczne tłumaczenie na EN)</option>
+        <option value="en">English (automatic translation to PL)</option>
+      </select>
+    </div>
+
+    <div class="news-form-group">
+      <label class="news-form-label">Tytuł</label>
+      <input type="text" class="news-form-input" id="newsTitleInput" placeholder="Wpisz tytuł...">
+    </div>
+
+    <div class="news-form-group">
+      <label class="news-form-label">Opis / Treść</label>
+      <textarea class="news-form-textarea" id="newsDescInput" rows="3" placeholder="Wpisz treść wiadomości..."></textarea>
+    </div>
+
+    <div class="news-form-group">
+      <label class="news-form-label">URL Zdjęcia</label>
+      <input type="text" class="news-form-input" id="newsImageInput" placeholder="https://i.imgur.com/... lub nazwa pliku (np. NEWS.jpg)">
+    </div>
+
+    <div class="news-form-group">
+      <label class="news-form-label">Napis na zdjęciu (Overlay Text)</label>
+      <input type="text" class="news-form-input" id="newsOverlayInput" placeholder='np. "Beft vs Hipergamia" ❤️😭'>
+    </div>
+
+    <label class="news-checkbox-label">
+      <input type="checkbox" id="newsIsBreakingCheckbox">
+      🚨 Opublikuj jako Breaking News (przeniesie stary Breaking News do archiwum)
+    </label>
+
+    <button class="auth-btn-small" id="btnPublishNews" onclick="saveNewsPost()" style="padding: 10px; font-size: 0.85rem; margin-top: 4px;">
+      Opublikuj wiadomość
+    </button>
+  </div>
+
+  <div class="section-title-news" id="txt-trending-news-title" style="margin-top: 10px;">
+    🔥 Popularne wiadomości
+  </div>
+
+  <!-- Dynamiczna lista archiwalnych wpisów -->
+  <div id="newsPostsFeed" class="posts-feed"></div>
+      </div>
+  
         <!-- Okienko Breaking News w zakładce News -->
         <div class="breaking-news-card">
           <div class="breaking-header">
@@ -933,6 +1056,48 @@
       </div>
     </div>
   </div>
+
+  <div class="modal" id="editNewsModal">
+  <div class="modal-content" style="max-width: 440px; text-align: left;">
+    <button class="close-btn" onclick="closeEditNewsModal()">&times;</button>
+    <h2 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--text);">✏️ Edytuj treść i tłumaczenie</h2>
+
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Tytuł (PL)</label>
+      <input type="text" class="news-form-input" id="editNewsTitlePl">
+    </div>
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Tytuł (EN)</label>
+      <input type="text" class="news-form-input" id="editNewsTitleEn">
+    </div>
+
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Opis (PL)</label>
+      <textarea class="news-form-textarea" id="editNewsDescPl" rows="2"></textarea>
+    </div>
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Opis (EN)</label>
+      <textarea class="news-form-textarea" id="editNewsDescEn" rows="2"></textarea>
+    </div>
+
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Napis na zdjęciu (PL)</label>
+      <input type="text" class="news-form-input" id="editNewsOverlayPl">
+    </div>
+    <div class="news-form-group" style="margin-bottom: 8px;">
+      <label class="news-form-label">Napis na zdjęciu (EN)</label>
+      <input type="text" class="news-form-input" id="editNewsOverlayEn">
+    </div>
+
+    <div class="news-form-group" style="margin-bottom: 12px;">
+      <label class="news-form-label">URL Zdjęcia</label>
+      <input type="text" class="news-form-input" id="editNewsImageUrl">
+    </div>
+
+    <button class="auth-btn-small" onclick="saveEditedNews()" style="width: 100%; padding: 10px;">Zapisz zmiany</button>
+  </div>
+  </div>
+  
 
   <script>
     let currentLang = "pl";
