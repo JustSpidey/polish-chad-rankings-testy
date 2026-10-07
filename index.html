@@ -817,16 +817,23 @@
     </header>
 
     <main class="content">
+      
       <!-- WIDOK RANKINGU -->
-      <div id="view-rankings" class="tab-view">
-        <section class="hero-section">
-          <div class="badge-updated" id="timer-text">⏱️ Ładowanie timera...</div>
-          <p class="hero-description" id="txt-hero">
-            Cotygodniowo aktualizowany ranking najbardziej wpływowych chadów w polskiej społeczności.
-          </p>
-          <div class="badge-verified" id="txt-verified">🎗️ Zweryfikowano przez Polish Chad Association</div>
-        </section>
+<div id="view-rankings" class="tab-view">
+  <section class="hero-section">
+    <div class="badge-updated" id="timer-text">⏱️ Ładowanie timera...</div>
+    <p class="hero-description" id="txt-hero">
+      Cotygodniowo aktualizowany ranking najbardziej wpływowych chadów w polskiej społeczności.
+    </p>
+    <div class="badge-verified" id="txt-verified">🎗️ Zweryfikowano przez Polish Chad Association</div>
+  </section>
 
+  <!-- KONTENER NA BREAKING NEWS NA STRONIE GŁÓWNEJ -->
+  <div id="breakingNewsMainContainer" style="margin-bottom: 25px;"></div>
+
+  <!-- Dalsza część widoku (np. Hall of Fame, rankingi itp.) -->
+</div>
+      
         <!-- Ankieta Społeczna -->
         <section class="poll-card">
           <div class="poll-badge">
@@ -1451,23 +1458,6 @@ function updateNewsFormLanguage() {
   if (overlayInp) overlayInp.placeholder = t.newsOverlayPlaceholder;
 }
 
-// Główna funkcja wywoływana po kliknięciu flagi w prawym górnym rogu
-function setLanguage(lang) {
-  currentLang = lang;
-  
-  const flagPl = document.getElementById("flag-pl");
-  const flagEn = document.getElementById("flag-en");
-  if (flagPl) flagPl.classList.toggle("active", lang === 'pl');
-  if (flagEn) flagEn.classList.toggle("active", lang === 'en');
-
-  updateNewsFormLanguage();
-  if (typeof renderRankings === "function") renderRankings();
-  if (typeof renderHallOfFame === "function") renderHallOfFame();
-  if (typeof setupPollUI === "function") setupPollUI();
-  if (typeof renderBreakingNewsUI === "function") renderBreakingNewsUI();
-  if (typeof renderNewsPostsUI === "function") renderNewsPostsUI();
-  if (typeof renderPosts === "function") renderPosts();
-}
     
 
     function getWeekIdentifier() {
@@ -2118,27 +2108,29 @@ async function saveNewsPost() {
 let breakingNewsCache = null;
 let newsPostsCache = {};
 
-function renderBreakingNewsUI(breakingPost) {
-  const container = document.getElementById("breakingNewsContainer");
-  if (!container) return;
+function renderBreakingNewsUI(breakingPost = breakingNewsCache) {
+  const containers = [
+    document.getElementById("breakingNewsContainer"),
+    document.getElementById("breakingNewsMainContainer") // Opcjonalny kontener na stronie głównej
+  ].filter(Boolean);
+
+  if (containers.length === 0) return;
 
   if (!breakingPost) {
-    container.innerHTML = "";
+    containers.forEach(c => c.innerHTML = "");
     return;
   }
 
-  // 1. Sprawdzamy uprawnienia dla tego konkretnego wpisu
   const canManage = canManageNewsPost(breakingPost);
-
-  // 2. Pobieramy nazwę konta zamiast e-maila
   const authorDisplayName = breakingPost.authorName || breakingPost.author || (breakingPost.authorEmail ? breakingPost.authorEmail.split('@')[0] : 'Autor');
+  const title = currentLang === 'pl' ? (breakingPost.title_pl || breakingPost.title_en) : (breakingPost.title_en || breakingPost.title_pl);
+  const desc = currentLang === 'pl' ? (breakingPost.desc_pl || breakingPost.desc_en) : (breakingPost.desc_en || breakingPost.desc_pl);
 
-  // 3. Renderujemy HTML (przyciski edycji/usuwania pokazują się tylko, gdy canManage === true)
-  container.innerHTML = `
+  const html = `
     <div class="news-card breaking-card">
-      <span class="badge-breaking">BREAKING NEWS</span>
-      <h3>${currentLang === 'pl' ? (breakingPost.title_pl || breakingPost.title_en) : (breakingPost.title_en || breakingPost.title_pl)}</h3>
-      <p>${currentLang === 'pl' ? (breakingPost.desc_pl || breakingPost.desc_en) : (breakingPost.desc_en || breakingPost.desc_pl)}</p>
+      <span class="badge-breaking">${i18n[currentLang].breakingHeader || 'BREAKING NEWS'}</span>
+      <h3>${title}</h3>
+      <p>${desc}</p>
       
       <div class="news-meta">
         <span>👤 Dodano przez: <strong>${authorDisplayName}</strong> (${breakingPost.authorRole || 'Rola'})</span>
@@ -2146,33 +2138,40 @@ function renderBreakingNewsUI(breakingPost) {
 
       ${canManage ? `
         <div class="news-admin-actions" style="margin-top: 10px; display: flex; gap: 8px;">
-          <button class="auth-btn-small" onclick="editNewsPost('breaking')">✏️ Edytuj</button>
-          <button class="auth-btn-small danger" onclick="deleteNewsPost('breaking')">🗑️ Usuń</button>
+          <button class="auth-btn-small" onclick="openEditNewsModal('breakingNews')">✏️ Edytuj</button>
+          <button class="auth-btn-small danger" onclick="deleteNewsPost('breakingNews')">🗑️ Usuń</button>
         </div>
       ` : ''}
     </div>
   `;
+
+  containers.forEach(c => c.innerHTML = html);
 }
+    
     
 
 function renderNewsPostsUI(postsArray) {
   const container = document.getElementById("newsPostsContainer");
   if (!container) return;
 
+  // Konwersja obiektu z cache na tablicę, jeśli nie przekazano jej bezpośrednio
+  if (!postsArray && newsPostsCache) {
+    postsArray = Object.keys(newsPostsCache).map(key => ({
+      id: key,
+      ...newsPostsCache[key]
+    })).reverse();
+  }
+
   if (!postsArray || postsArray.length === 0) {
-    container.innerHTML = "<p>Brak wiadomości do wyświetlenia.</p>";
+    container.innerHTML = "<p style='text-align:center; color:var(--subtext); padding:20px;'>Brak wiadomości do wyświetlenia.</p>";
     return;
   }
 
   let html = "";
 
   postsArray.forEach((post) => {
-    // 1. Sprawdzamy uprawnienia dla każdego posta osobno
     const canManage = canManageNewsPost(post);
-
-    // 2. Pobieganie przyjaznej nazwy autora
     const authorDisplayName = post.authorName || post.author || (post.authorEmail ? post.authorEmail.split('@')[0] : 'Autor');
-
     const title = currentLang === 'pl' ? (post.title_pl || post.title_en) : (post.title_en || post.title_pl);
     const desc = currentLang === 'pl' ? (post.desc_pl || post.desc_en) : (post.desc_en || post.desc_pl);
 
@@ -2188,7 +2187,7 @@ function renderNewsPostsUI(postsArray) {
 
         ${canManage ? `
           <div class="news-admin-actions" style="margin-top: 10px; display: flex; gap: 8px;">
-            <button class="auth-btn-small" onclick="editNewsPost('${post.id}')">✏️ Edytuj</button>
+            <button class="auth-btn-small" onclick="openEditNewsModal('newsPosts/${post.id}')">✏️ Edytuj</button>
             <button class="auth-btn-small danger" onclick="deleteNewsPost('${post.id}')">🗑️ Usuń</button>
           </div>
         ` : ''}
@@ -2198,6 +2197,7 @@ function renderNewsPostsUI(postsArray) {
 
   container.innerHTML = html;
 }
+    
     
 
 // --- 5. OBSŁUGA MODALU EDYCJI TŁUMACZEŃ ---
@@ -2527,7 +2527,10 @@ function setLanguage(lang) {
   const flagEn = document.getElementById("flag-en");
   if (flagEn) flagEn.classList.toggle("active", lang === "en");
 
-  // Główne teksty
+  // 1. Tłumaczenie formularza tworzenia wiadomości (News)
+  updateNewsFormLanguage();
+
+  // 2. Główne teksty interfejsu
   safeSetText("txt-hero", i18n[lang].hero);
   safeSetText("txt-verified", i18n[lang].verified);
   safeSetText("st-rank", i18n[lang].stRank);
@@ -2540,7 +2543,7 @@ function setLanguage(lang) {
   safeSetText("txt-tab-news", i18n[lang].tabNews);
   safeSetText("txt-tab-community", i18n[lang].tabCommunity);
 
-  // Formularz tworzenia postów
+  // Formularz tworzenia postów w Społeczności
   safeSetPlaceholder("postInput", i18n[lang].writePost);
   safeSetText("txt-publish-btn", i18n[lang].publishBtn);
   safeSetText("txt-lock-overlay", i18n[lang].lockOverlayText);
@@ -2563,11 +2566,14 @@ function setLanguage(lang) {
   safeSetText("txt-login-btn", i18n[lang].modalLoginBtn);
   safeSetText("txt-register-btn", i18n[lang].modalRegisterBtn);
 
+  // Odświeżenie widoków po zmianie języka
   setupPollUI();
   renderRankings();
   renderHallOfFame();
   updateAuthUI();
   renderPosts();
+  renderBreakingNewsUI();
+  renderNewsPostsUI();
 
   if (activeChadId !== null) {
     const chad = chadsData.find(c => c.id === activeChadId);
@@ -2577,6 +2583,7 @@ function setLanguage(lang) {
     }
   }
 }
+    
     
 
     function openModal(chad) {
@@ -2740,13 +2747,14 @@ function applyTimerToButton(lastVoteTime) {
     
     db.ref('breakingNews').on('value', snapshot => {
   breakingNewsCache = snapshot.val();
-  renderBreakingNewsUI();
+  renderBreakingNewsUI(breakingNewsCache);
 });
 
 db.ref('newsPosts').on('value', snapshot => {
   newsPostsCache = snapshot.val() || {};
   renderNewsPostsUI();
 });
+    
     
     
     function closeModal() {
