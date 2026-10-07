@@ -912,46 +912,54 @@
   <div class="breaking-news-card" id="breakingNewsPageContainer" style="display: none;"></div>
 
   <!-- Formularz dodawania nowości -->
-  <div class="news-create-card" id="newsCreateCardContainer" style="display: none;">
-    <h3 style="font-size: 1rem; color: var(--text); font-weight: 800;">➕ Dodaj nową wiadomość</h3>
-    
-    <div class="news-form-group">
-      <label class="news-form-label">Język tworzonego wpisu</label>
-      <select class="news-form-select" id="newsInputLangSelect">
-        <option value="pl">Polski (automatyczne tłumaczenie na EN)</option>
-        <option value="en">English (automatic translation to PL)</option>
-      </select>
-    </div>
-
-    <div class="news-form-group">
-      <label class="news-form-label">Tytuł</label>
-      <input type="text" class="news-form-input" id="newsTitleInput" placeholder="Wpisz tytuł...">
-    </div>
-
-    <div class="news-form-group">
-      <label class="news-form-label">Opis / Treść</label>
-      <textarea class="news-form-textarea" id="newsDescInput" rows="3" placeholder="Wpisz treść wiadomości..."></textarea>
-    </div>
-
-    <div class="news-form-group">
-      <label class="news-form-label">URL Zdjęcia</label>
-      <input type="text" class="news-form-input" id="newsImageInput" placeholder="https://i.imgur.com/... lub NEWS.jpg">
-    </div>
-
-    <div class="news-form-group">
-      <label class="news-form-label">Napis na zdjęciu (Overlay Text)</label>
-      <input type="text" class="news-form-input" id="newsOverlayInput" placeholder='np. "Beft vs Hipergamia" ❤️😭'>
-    </div>
-
-    <label class="news-checkbox-label">
-      <input type="checkbox" id="newsIsBreakingCheckbox">
-      🚨 Opublikuj jako Breaking News (przeniesie stary Breaking News do archiwum)
-    </label>
-
-    <button class="auth-btn-small" id="btnPublishNews" onclick="saveNewsPost()" style="padding: 10px; font-size: 0.85rem; margin-top: 4px;">
-      Opublikuj wiadomość
-    </button>
+<div class="news-create-card" id="newsCreateCardContainer" style="display: none;">
+  <h3 id="txt-news-create-title" style="font-size: 1rem; color: var(--text); font-weight: 800;">➕ Dodaj nową wiadomość</h3>
+  
+  <div class="news-form-group">
+    <label class="news-form-label" id="txt-news-lang-label">Język tworzonego wpisu</label>
+    <select class="news-form-select" id="newsInputLangSelect">
+      <option value="pl" id="opt-news-lang-pl">Polski (automatyczne tłumaczenie na EN)</option>
+      <option value="en" id="opt-news-lang-en">English (automatic translation to PL)</option>
+    </select>
   </div>
+
+  <div class="news-form-group">
+    <label class="news-form-label" id="txt-news-title-label">Tytuł</label>
+    <input type="text" class="news-form-input" id="newsTitleInput" placeholder="Wpisz tytuł...">
+  </div>
+
+  <div class="news-form-group">
+    <label class="news-form-label" id="txt-news-desc-label">Opis / Treść</label>
+    <textarea class="news-form-textarea" id="newsDescInput" rows="3" placeholder="Wpisz treść wiadomości..."></textarea>
+  </div>
+
+  <!-- Przycisk wyboru zdjęcia z galerii (zamiast URL) -->
+  <div class="news-form-group">
+    <label class="news-form-label" id="txt-news-img-label">Zdjęcie (wybierz z galerii)</label>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label class="file-input-btn">
+        🖼️ <span id="txt-news-add-img">Wybierz zdjęcie</span>
+        <input type="file" id="newsImageFileInput" accept="image/*" style="display: none;" onchange="updateFileName(this, 'newsImageFileName')">
+      </label>
+      <span id="newsImageFileName" style="font-size: 0.75rem; color: var(--purple-light);"></span>
+    </div>
+  </div>
+
+  <div class="news-form-group">
+    <label class="news-form-label" id="txt-news-overlay-label">Napis na zdjęciu (Overlay Text)</label>
+    <input type="text" class="news-form-input" id="newsOverlayInput" placeholder='np. "Beft vs Hipergamia" ❤️😭'>
+  </div>
+
+  <label class="news-checkbox-label">
+    <input type="checkbox" id="newsIsBreakingCheckbox">
+    <span id="txt-news-breaking-label">🚨 Opublikuj jako Breaking News (przeniesie stary Breaking News do archiwum)</span>
+  </label>
+
+  <button class="auth-btn-small" id="btnPublishNews" onclick="saveNewsPost()" style="padding: 10px; font-size: 0.85rem; margin-top: 4px;">
+    Opublikuj wiadomość
+  </button>
+</div>
+  
 
   <div class="section-title-news" id="txt-trending-news-title" style="margin-top: 10px;">
     🔥 Popularne wiadomości
@@ -1377,6 +1385,90 @@ const archivedPollVotes = {
         voteWait: "⏳ Wait"
       }
     };
+
+    // --- 1. Rozbudowa obiektów i18n ---
+i18n.pl.newsCreateTitle = "➕ Dodaj nową wiadomość";
+i18n.pl.newsLangLabel = "Język tworzonego wpisu";
+i18n.pl.newsLangPl = "Polski (automatyczne tłumaczenie na EN)";
+i18n.pl.newsLangEn = "English (automatic translation to PL)";
+i18n.pl.newsTitleLabel = "Tytuł";
+i18n.pl.newsTitlePlaceholder = "Wpisz tytuł...";
+i18n.pl.newsDescLabel = "Opis / Treść";
+i18n.pl.newsDescPlaceholder = "Wpisz treść wiadomości...";
+i18n.pl.newsImgLabel = "Zdjęcie (wybierz z galerii)";
+i18n.pl.newsAddImgBtn = "Wybierz zdjęcie";
+i18n.pl.newsOverlayLabel = "Napis na zdjęciu (Overlay Text)";
+i18n.pl.newsOverlayPlaceholder = 'np. "Beft vs Hipergamia" ❤️😭';
+i18n.pl.newsBreakingLabel = "🚨 Opublikuj jako Breaking News (przeniesie stary Breaking News do archiwum)";
+i18n.pl.newsPublishBtn = "Opublikuj wiadomość";
+
+i18n.en.newsCreateTitle = "➕ Add new article";
+i18n.en.newsLangLabel = "Language of post";
+i18n.en.newsLangPl = "Polish (automatic translation to EN)";
+i18n.en.newsLangEn = "English (automatic translation to PL)";
+i18n.en.newsTitleLabel = "Title";
+i18n.en.newsTitlePlaceholder = "Enter title...";
+i18n.en.newsDescLabel = "Description / Content";
+i18n.en.newsDescPlaceholder = "Enter message content...";
+i18n.en.newsImgLabel = "Image (choose from gallery)";
+i18n.en.newsAddImgBtn = "Choose image";
+i18n.en.newsOverlayLabel = "Image Overlay Text";
+i18n.en.newsOverlayPlaceholder = 'e.g. "Beft vs Hypergamy" ❤️😭';
+i18n.en.newsBreakingLabel = "🚨 Publish as Breaking News (archives previous Breaking News)";
+i18n.en.newsPublishBtn = "Publish article";
+
+// Funkcja pomocnicza zmieniająca napisy w okienku dodawania nowości
+function updateNewsFormLanguage() {
+  const lang = currentLang;
+  const t = i18n[lang];
+
+  const textMap = {
+    'txt-news-create-title': t.newsCreateTitle,
+    'txt-news-lang-label': t.newsLangLabel,
+    'opt-news-lang-pl': t.newsLangPl,
+    'opt-news-lang-en': t.newsLangEn,
+    'txt-news-title-label': t.newsTitleLabel,
+    'txt-news-desc-label': t.newsDescLabel,
+    'txt-news-img-label': t.newsImgLabel,
+    'txt-news-add-img': t.newsAddImgBtn,
+    'txt-news-overlay-label': t.newsOverlayLabel,
+    'txt-news-breaking-label': t.newsBreakingLabel,
+    'btnPublishNews': t.newsPublishBtn
+  };
+
+  for (const [id, value] of Object.entries(textMap)) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value;
+  }
+
+  const titleInp = document.getElementById('newsTitleInput');
+  if (titleInp) titleInp.placeholder = t.newsTitlePlaceholder;
+
+  const descInp = document.getElementById('newsDescInput');
+  if (descInp) descInp.placeholder = t.newsDescPlaceholder;
+
+  const overlayInp = document.getElementById('newsOverlayInput');
+  if (overlayInp) overlayInp.placeholder = t.newsOverlayPlaceholder;
+}
+
+// Główna funkcja wywoływana po kliknięciu flagi w prawym górnym rogu
+function setLanguage(lang) {
+  currentLang = lang;
+  
+  const flagPl = document.getElementById("flag-pl");
+  const flagEn = document.getElementById("flag-en");
+  if (flagPl) flagPl.classList.toggle("active", lang === 'pl');
+  if (flagEn) flagEn.classList.toggle("active", lang === 'en');
+
+  updateNewsFormLanguage();
+  if (typeof renderRankings === "function") renderRankings();
+  if (typeof renderHallOfFame === "function") renderHallOfFame();
+  if (typeof setupPollUI === "function") setupPollUI();
+  if (typeof renderBreakingNewsUI === "function") renderBreakingNewsUI();
+  if (typeof renderNewsPostsUI === "function") renderNewsPostsUI();
+  if (typeof renderPosts === "function") renderPosts();
+}
+    
 
     function getWeekIdentifier() {
       const now = new Date();
@@ -1921,38 +2013,58 @@ async function translateText(text, sourceLang, targetLang) {
 }
 
 // --- 3. ZAPIS I AUTOMATYCZNA ARCHIWIZACJA BREAKING NEWS ---
+// Pomocnicza funkcja: Właściciel/Admin edytuje/usuwa wszystko. CHAD i MOD edytują/usuwają TYLKO swoje posty.
+function canManageNewsPost(post) {
+  if (!currentUser || !post) return false;
+  
+  const userRole = getUserRole(currentUser);
+  const isOwner = userRole === "WŁAŚCICIEL" || currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isAuthor = currentUser.uid === post.authorUid || currentUser.email.toLowerCase() === (post.authorEmail || "").toLowerCase();
+
+  return isOwner || isAuthor;
+}
+
 async function saveNewsPost() {
   if (!canPostNews()) {
-    alert("Brak uprawnień do publikacji!");
+    alert(currentLang === 'pl' ? "Brak uprawnień do publikacji!" : "Unauthorized to publish!");
     return;
   }
 
   const titleInput = document.getElementById("newsTitleInput")?.value.trim() || "";
   const descInput = document.getElementById("newsDescInput")?.value.trim() || "";
-  const imageInput = document.getElementById("newsImageInput")?.value.trim() || "";
   const overlayInput = document.getElementById("newsOverlayInput")?.value.trim() || "";
+  const fileInput = document.getElementById("newsImageFileInput");
   const isBreaking = document.getElementById("newsIsBreakingCheckbox")?.checked || false;
   const inputLang = document.getElementById("newsInputLangSelect")?.value || "pl";
 
   if (!titleInput || !descInput) {
-    alert("Wypełnij przynajmniej Tytuł i Treść wiadomości.");
+    alert(currentLang === 'pl' ? "Wypełnij przynajmniej Tytuł i Treść wiadomości." : "Please fill in title and content.");
     return;
   }
 
   const btn = document.getElementById("btnPublishNews");
   if (btn) {
     btn.disabled = true;
-    btn.innerText = "Trwa tłumaczenie i zapisywanie...";
+    btn.innerText = currentLang === 'pl' ? "Trwa wgrywanie zdjęcia i zapisywanie..." : "Uploading image and saving...";
   }
 
   try {
-    const targetLang = inputLang === 'pl' ? 'en' : 'pl';
+    // 1. Wgrywanie zdjęcia na ImgBB jeśli wybrano plik z galerii
+    let imageUrl = "NEWS.jpg";
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      imageUrl = await uploadImage(fileInput.files[0]);
+    }
 
+    // 2. Automatyczne tłumaczenie
+    const targetLang = inputLang === 'pl' ? 'en' : 'pl';
     const [transTitle, transDesc, transOverlay] = await Promise.all([
       translateText(titleInput, inputLang, targetLang),
       translateText(descInput, inputLang, targetLang),
       overlayInput ? translateText(overlayInput, inputLang, targetLang) : Promise.resolve("")
     ]);
+
+    // 3. Pobranie nazwy konta zamiast e-maila
+    const accountName = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Użytkownik");
 
     const newsPayload = {
       title_pl: inputLang === 'pl' ? titleInput : transTitle,
@@ -1961,10 +2073,11 @@ async function saveNewsPost() {
       desc_en: inputLang === 'en' ? descInput : transDesc,
       overlay_pl: inputLang === 'pl' ? overlayInput : transOverlay,
       overlay_en: inputLang === 'en' ? overlayInput : transOverlay,
-      imageUrl: imageInput || "NEWS.jpg",
+      imageUrl: imageUrl,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
       authorUid: currentUser.uid,
       authorEmail: currentUser.email,
+      authorName: accountName, // Nazwa konta zamiast emaila
       authorRole: getUserRole(currentUser)
     };
 
@@ -1981,126 +2094,111 @@ async function saveNewsPost() {
       await db.ref('newsPosts').push(newsPayload);
     }
 
+    // Czyszczenie pól formularza
     if (document.getElementById("newsTitleInput")) document.getElementById("newsTitleInput").value = "";
     if (document.getElementById("newsDescInput")) document.getElementById("newsDescInput").value = "";
-    if (document.getElementById("newsImageInput")) document.getElementById("newsImageInput").value = "";
     if (document.getElementById("newsOverlayInput")) document.getElementById("newsOverlayInput").value = "";
+    if (document.getElementById("newsImageFileInput")) document.getElementById("newsImageFileInput").value = "";
+    if (document.getElementById("newsImageFileName")) document.getElementById("newsImageFileName").innerText = "";
     if (document.getElementById("newsIsBreakingCheckbox")) document.getElementById("newsIsBreakingCheckbox").checked = false;
 
-    alert("Pomyślnie opublikowano wiadomość!");
+    alert(currentLang === 'pl' ? "Pomyślnie opublikowano wiadomość!" : "Successfully published news!");
   } catch (err) {
     alert("Błąd podczas zapisywania: " + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerText = "Opublikuj wiadomość";
+      btn.innerText = i18n[currentLang].newsPublishBtn || "Opublikuj wiadomość";
     }
   }
 }
+    
 
 // --- 4. RENDEROWANIE BREAKING NEWS & NEWS POSTS ---
 let breakingNewsCache = null;
 let newsPostsCache = {};
 
-function renderBreakingNewsUI() {
-  const containers = [
-    document.getElementById("breakingNewsHomeContainer"),
-    document.getElementById("breakingNewsPageContainer")
-  ];
-
-  containers.forEach(container => {
-    if (!container) return;
-    if (!breakingNewsCache) {
-      container.style.display = "none";
-      return;
-    }
-
-    container.style.display = "flex";
-
-    const title = currentLang === 'pl' ? breakingNewsCache.title_pl : breakingNewsCache.title_en;
-    const desc = currentLang === 'pl' ? breakingNewsCache.desc_pl : breakingNewsCache.desc_en;
-    const overlay = currentLang === 'pl' ? breakingNewsCache.overlay_pl : breakingNewsCache.overlay_en;
-    const roleBadge = getRoleBadgeHTML(breakingNewsCache.authorRole);
-
-    const canEdit = currentUser && (
-      currentUser.uid === breakingNewsCache.authorUid ||
-      getUserRole(currentUser) === "WŁAŚCICIEL" ||
-      getUserRole(currentUser) === "MOD"
-    );
-
-    container.innerHTML = `
-      <div class="breaking-header">
-        <span>🚨</span> <span>${i18n[currentLang]?.breakingHeader || 'NAJNOWSZE WIADOMOŚCI'}</span> <span>🚨</span>
-      </div>
-      <h2 class="breaking-title">${title || ''}</h2>
-      ${breakingNewsCache.imageUrl ? `
-        <div class="news-media">
-          <img src="${breakingNewsCache.imageUrl}" alt="News Image">
-          ${overlay ? `<div class="media-overlay-text">${overlay}</div>` : ''}
-        </div>
-      ` : ''}
-      <p class="news-description">${desc || ''}</p>
-      <div style="font-size:0.75rem; color:var(--subtext); width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-        <span>Autor: ${breakingNewsCache.authorEmail || 'System'}${roleBadge}</span>
-        ${canEdit ? `<button class="auth-btn-small" style="font-size:0.7rem; padding:4px 8px;" onclick="openEditNewsModal('breakingNews')">✏️ Edytuj / Popraw tłumaczenie</button>` : ''}
-      </div>
-    `;
-  });
-}
-
-function renderNewsPostsUI() {
-  const container = document.getElementById("newsPostsFeed");
+function renderBreakingNewsUI(breakingPost) {
+  const container = document.getElementById("breakingNewsContainer");
   if (!container) return;
-  container.innerHTML = "";
 
-  const keys = Object.keys(newsPostsCache);
-  if (keys.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color: var(--subtext); font-size:0.85rem;">Brak wiadomości w archiwum.</p>`;
+  if (!breakingPost) {
+    container.innerHTML = "";
     return;
   }
 
-  const postsArray = keys.map(k => ({ id: k, ...newsPostsCache[k] })).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+  // 1. Sprawdzamy uprawnienia dla tego konkretnego wpisu
+  const canManage = canManageNewsPost(breakingPost);
 
-  postsArray.forEach(post => {
-    const title = currentLang === 'pl' ? post.title_pl : post.title_en;
-    const desc = currentLang === 'pl' ? post.desc_pl : post.desc_en;
-    const overlay = currentLang === 'pl' ? post.overlay_pl : post.overlay_en;
-    const roleBadge = getRoleBadgeHTML(post.authorRole);
+  // 2. Pobieramy nazwę konta zamiast e-maila
+  const authorDisplayName = breakingPost.authorName || breakingPost.author || (breakingPost.authorEmail ? breakingPost.authorEmail.split('@')[0] : 'Autor');
 
-    const canEdit = currentUser && (
-      currentUser.uid === post.authorUid ||
-      getUserRole(currentUser) === "WŁAŚCICIEL" ||
-      getUserRole(currentUser) === "MOD"
-    );
-
-    const postDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString() : '';
-
-    const card = document.createElement("div");
-    card.className = "news-post-card";
-    card.innerHTML = `
-      <div class="post-header">
-        <span class="post-author">${post.authorEmail || 'Autor'}${roleBadge}</span>
-        <span class="post-time">${postDate}</span>
+  // 3. Renderujemy HTML (przyciski edycji/usuwania pokazują się tylko, gdy canManage === true)
+  container.innerHTML = `
+    <div class="news-card breaking-card">
+      <span class="badge-breaking">BREAKING NEWS</span>
+      <h3>${currentLang === 'pl' ? (breakingPost.title_pl || breakingPost.title_en) : (breakingPost.title_en || breakingPost.title_pl)}</h3>
+      <p>${currentLang === 'pl' ? (breakingPost.desc_pl || breakingPost.desc_en) : (breakingPost.desc_en || breakingPost.desc_pl)}</p>
+      
+      <div class="news-meta">
+        <span>👤 Dodano przez: <strong>${authorDisplayName}</strong> (${breakingPost.authorRole || 'Rola'})</span>
       </div>
-      <h3 style="font-size:1.1rem; font-weight:800; color:#fff;">${title || ''}</h3>
-      ${post.imageUrl ? `
-        <div class="news-media">
-          <img src="${post.imageUrl}" alt="News Image">
-          ${overlay ? `<div class="media-overlay-text">${overlay}</div>` : ''}
-        </div>
-      ` : ''}
-      <p class="news-description" style="color: #d2c8e0;">${desc || ''}</p>
-      ${canEdit ? `
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-          <button class="auth-btn-small" style="font-size:0.7rem; padding:4px 8px;" onclick="openEditNewsModal('newsPosts/${post.id}')">✏️️ Edytuj / Popraw tłumaczenie</button>
-          <button class="delete-btn-admin" onclick="deleteNewsPost('${post.id}')">Usuń</button>
-        </div>
-      ` : ''}
-    `;
 
-    container.appendChild(card);
-  });
+      ${canManage ? `
+        <div class="news-admin-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+          <button class="auth-btn-small" onclick="editNewsPost('breaking')">✏️ Edytuj</button>
+          <button class="auth-btn-small danger" onclick="deleteNewsPost('breaking')">🗑️ Usuń</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
 }
+    
+
+function renderNewsPostsUI(postsArray) {
+  const container = document.getElementById("newsPostsContainer");
+  if (!container) return;
+
+  if (!postsArray || postsArray.length === 0) {
+    container.innerHTML = "<p>Brak wiadomości do wyświetlenia.</p>";
+    return;
+  }
+
+  let html = "";
+
+  postsArray.forEach((post) => {
+    // 1. Sprawdzamy uprawnienia dla każdego posta osobno
+    const canManage = canManageNewsPost(post);
+
+    // 2. Pobieganie przyjaznej nazwy autora
+    const authorDisplayName = post.authorName || post.author || (post.authorEmail ? post.authorEmail.split('@')[0] : 'Autor');
+
+    const title = currentLang === 'pl' ? (post.title_pl || post.title_en) : (post.title_en || post.title_pl);
+    const desc = currentLang === 'pl' ? (post.desc_pl || post.desc_en) : (post.desc_en || post.desc_pl);
+
+    html += `
+      <div class="news-card">
+        ${post.imageUrl ? `<img src="${post.imageUrl}" class="news-card-img" alt="News Image">` : ''}
+        <h3>${title}</h3>
+        <p>${desc}</p>
+        
+        <div class="news-meta">
+          <span>👤 Autor: <strong>${authorDisplayName}</strong> (${post.authorRole || 'Rola'})</span>
+        </div>
+
+        ${canManage ? `
+          <div class="news-admin-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="auth-btn-small" onclick="editNewsPost('${post.id}')">✏️ Edytuj</button>
+            <button class="auth-btn-small danger" onclick="deleteNewsPost('${post.id}')">🗑️ Usuń</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+    
 
 // --- 5. OBSŁUGA MODALU EDYCJI TŁUMACZEŃ ---
 let currentEditingPath = null;
