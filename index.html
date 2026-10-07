@@ -1149,12 +1149,22 @@ function getRoleBadgeHTML(role) {
 const db = firebase.database();
 const auth = firebase.auth();
 
-// Automatyczne wykrywanie sesji zalogowanego użytkownika
-auth.onAuthStateChanged((user) => {
-  currentUser = user;
-  updateAuthUI();
-  renderPosts();
+// Podepnij nasłuchiwanie stanu logowania
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    // Użytkownik jest zalogowany (zwykłe konto LUB anonimowe)
+    console.log("Zalogowano użytkownika UID:", user.uid);
+    currentUser = user;
+    updateAuthUI();
+    renderPosts();
+  } else {
+    // Użytkownik nie jest zalogowany -> automatyczne logowanie anonimowe w tle
+    firebase.auth().signInAnonymously().catch((error) => {
+      console.error("Błąd automatycznego logowania anonimowego:", error);
+    });
+  }
 });
+    
     
     const pollConfig = {
       targetRank: 1,
