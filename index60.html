@@ -1200,7 +1200,10 @@ function deleteNewsPost(postId) {
 
     const postImgHTML = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img" alt="Post attachment">` : '';
 
-    const safePostText = post.text ? post.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
+    const safePostText = post.text 
+  ? post.text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ') 
+  : '';
+    
     const postTranslateHTML = post.text 
       ? `<div class="translated-box" id="postTrans_${post.id}"></div>
          <button class="translate-btn" onclick="translateContent(this, \`${safePostText}\`, 'postTrans_${post.id}')">${i18n[currentLang].translateBtn}</button>` 
@@ -1227,7 +1230,10 @@ function deleteNewsPost(postId) {
           ? `<button class="delete-btn-admin" onclick="deleteComment('${post.id}', '${cId}')">${i18n[currentLang].deleteBtn}</button>` 
           : '';
         const commImg = c.imageUrl ? `<img src="${c.imageUrl}" class="post-img" alt="Comment image">` : '';
-        const safeCommText = c.text ? c.text.replace(/`/g, "\\`").replace(/'/g, "\\'") : '';
+        const safeCommText = c.text 
+  ? c.text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ') 
+  : '';
+        
 
         commentsHTML += `
           <div class="comment-item">
@@ -1411,58 +1417,76 @@ function deleteNewsPost(postId) {
     }
     
     
-    function setLanguage(lang) {
-      currentLang = lang;
-      document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
-      document.getElementById("flag-en").classList.toggle("active", lang === "en");
+    // Funkcje pomocnicze chroniące skrypt przed awarią przy braku ID w HTML
+function safeSetText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
 
-      document.getElementById("txt-hero").innerText = i18n[lang].hero;
-      document.getElementById("txt-verified").innerText = i18n[lang].verified;
-      document.getElementById("st-rank").innerText = i18n[lang].stRank;
-      document.getElementById("st-votes").innerText = i18n[lang].stVotes;
-      document.getElementById("txt-poll-title").innerText = i18n[lang].pollTitle;
-      document.getElementById("txt-hof-title").innerText = i18n[lang].hofTitle;
-      document.getElementById("txt-hof-sub").innerText = i18n[lang].hofSub;
-      document.getElementById("txt-poll-badge").innerText = i18n[lang].pollBadge;
-      document.getElementById("txt-tab-rankings").innerText = i18n[lang].tabRankings;
-      document.getElementById("txt-tab-news").innerText = i18n[lang].tabNews;
-      document.getElementById("txt-tab-community").innerText = i18n[lang].tabCommunity;
-      document.getElementById("postInput").placeholder = i18n[lang].writePost;
-      document.getElementById("txt-publish-btn").innerText = i18n[lang].publishBtn;
-      document.getElementById("txt-lock-overlay").innerText = i18n[lang].lockOverlayText;
-      document.getElementById("txt-add-img").innerText = i18n[lang].addImage;
+function safeSetPlaceholder(id, placeholder) {
+  const el = document.getElementById(id);
+  if (el) el.placeholder = placeholder;
+}
 
-      document.getElementById("txt-news-page-title").innerText = i18n[lang].newsPageTitle;
-      document.getElementById("txt-trending-news-title").innerText = i18n[lang].trendingNewsTitle;
+function setLanguage(lang) {
+  currentLang = lang;
+  
+  const flagPl = document.getElementById("flag-pl");
+  if (flagPl) flagPl.classList.toggle("active", lang === "pl");
+  const flagEn = document.getElementById("flag-en");
+  if (flagEn) flagEn.classList.toggle("active", lang === "en");
 
-      document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
-      document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
-      document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
-      document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc);
+  // Główne teksty
+  safeSetText("txt-hero", i18n[lang].hero);
+  safeSetText("txt-verified", i18n[lang].verified);
+  safeSetText("st-rank", i18n[lang].stRank);
+  safeSetText("st-votes", i18n[lang].stVotes);
+  safeSetText("txt-poll-title", i18n[lang].pollTitle);
+  safeSetText("txt-hof-title", i18n[lang].hofTitle);
+  safeSetText("txt-hof-sub", i18n[lang].hofSub);
+  safeSetText("txt-poll-badge", i18n[lang].pollBadge);
+  safeSetText("txt-tab-rankings", i18n[lang].tabRankings);
+  safeSetText("txt-tab-news", i18n[lang].tabNews);
+  safeSetText("txt-tab-community", i18n[lang].tabCommunity);
 
-      document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
-      document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
-      document.getElementById("authEmail").placeholder = i18n[lang].emailPlaceholder;
-      document.getElementById("authPassword").placeholder = i18n[lang].passwordPlaceholder;
-      document.getElementById("txt-login-btn").innerText = i18n[lang].modalLoginBtn;
-      document.getElementById("txt-register-btn").innerText = i18n[lang].modalRegisterBtn;
+  // Formularz tworzenia postów
+  safeSetPlaceholder("postInput", i18n[lang].writePost);
+  safeSetText("txt-publish-btn", i18n[lang].publishBtn);
+  safeSetText("txt-lock-overlay", i18n[lang].lockOverlayText);
+  safeSetText("txt-add-img", i18n[lang].addImage);
 
-      setupPollUI();
-      renderRankings();
-      renderHallOfFame();
-      updateAuthUI();
-      renderPosts();
-      renderBreakingNewsUI();
-      renderNewsPostsUI();
+  // Sekcja Aktualności i Breaking News
+  safeSetText("txt-news-page-title", i18n[lang].newsPageTitle);
+  safeSetText("txt-trending-news-title", i18n[lang].trendingNewsTitle);
 
-      if (activeChadId !== null) {
-        const chad = chadsData.find(c => c.id === activeChadId);
-        if (chad) {
-          updateModalText(chad);
-          updateVoteButtonState(chad.id);
-        }
-      }
+  document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
+  document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
+  document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
+  document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc);
+
+  // Modal autoryzacji
+  safeSetText("txt-auth-title", i18n[lang].authTitle);
+  safeSetPlaceholder("authUsername", i18n[lang].usernamePlaceholder);
+  safeSetPlaceholder("authEmail", i18n[lang].emailPlaceholder);
+  safeSetPlaceholder("authPassword", i18n[lang].passwordPlaceholder);
+  safeSetText("txt-login-btn", i18n[lang].modalLoginBtn);
+  safeSetText("txt-register-btn", i18n[lang].modalRegisterBtn);
+
+  setupPollUI();
+  renderRankings();
+  renderHallOfFame();
+  updateAuthUI();
+  renderPosts();
+
+  if (activeChadId !== null) {
+    const chad = chadsData.find(c => c.id === activeChadId);
+    if (chad) {
+      updateModalText(chad);
+      updateVoteButtonState(chad.id);
     }
+  }
+}
+    
 
     function openModal(chad) {
       activeChadId = chad.id;
@@ -1671,6 +1695,7 @@ db.ref('newsPosts').on('value', snapshot => {
     renderRankings();
     renderHallOfFame();
     updateAuthUI();
+    setLanguage(currentLang);
     updateCountdown();
     setInterval(updateCountdown, 1000);
   </script>
