@@ -1071,11 +1071,17 @@
       <input type="text" class="news-form-input" id="editNewsOverlayEn">
     </div>
 
-    <div class="news-form-group" style="margin-bottom: 12px;">
-      <label class="news-form-label">URL Zdjęcia</label>
-      <input type="text" class="news-form-input" id="editNewsImageUrl">
+    <div class="news-form-group">
+  <label class="news-form-label" id="lbl-news-img">Zdjęcie</label>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <label class="file-input-btn">
+      🖼️ <span id="txt-news-add-img">Wybierz z galerii</span>
+      <input type="file" id="newsImageFile" accept="image/*" style="display: none;" onchange="updateFileName(this, 'newsImageFileName')">
+    </label>
+    <span id="newsImageFileName" style="font-size: 0.72rem; color: var(--purple-light);"></span>
+  </div>
     </div>
-
+    
     <button class="auth-btn-small" onclick="saveEditedNews()" style="width: 100%; padding: 10px;">Zapisz zmiany</button>
   </div>
   </div>
@@ -1320,7 +1326,19 @@ const archivedPollVotes = {
         newsDesc: "Beft wkracza do gry w najtrudniejszym momencie, powracając, by wziąć ciężar walki z dysproporcjami rynkowymi na własne barki. Pstryknięciem palców przywołuje brutalny schemat hipergamii, po czym bez cienia wahania wyprowadza w niego serię niszczycielskich ciosów, rozbijając go w pył. Jego drapieżny styl i bezkompromisowa postawa dają jasny sygnał braciom z podziemia – czas nierówności na rynku właśnie dobiegł końca.",
         newsPageTitle: "AKTUALNOŚCI",
         trendingNewsTitle: "🔥 Popularne wiadomości",
-        voteWait: "⏳ Odczekaj"
+        voteWait: "⏳ Odczekaj",
+        newsAddTitle: "➕ Dodaj nową wiadomość",
+        newsLangLabel: "Język tworzonego wpisu",
+        newsTitleLabel: "Tytuł",
+        newsTitlePlaceholder: "Wpisz tytuł...",
+        newsDescLabel: "Opis / Treść",
+        newsDescPlaceholder: "Wpisz treść wiadomości...",
+        newsImgLabel: "Zdjęcie",
+        newsAddImgBtn: "Wybierz z galerii",
+        newsOverlayLabel: "Napis na zdjęciu (Overlay Text)",
+        newsOverlayPlaceholder: 'np. "Beft vs Hipergamia" ❤️😭',
+        newsBreakingCheck: "🚨 Opublikuj jako Breaking News (przeniesie stary Breaking News do archiwum)",
+        newsPublishBtn: "Opublikuj wiadomość"
       },
       en: {
         timerPrefix: "⏱️ Update in: ",
@@ -1374,7 +1392,19 @@ const archivedPollVotes = {
         newsDesc: "Beft enters the fray at the most critical moment, returning to shoulder the burden of battling market imbalances. With a snap of his fingers, he summons the brutal paradigm of hypergamy, only to deliver a series of devastating blows without a moment’s hesitation, shattering it to dust. His predatory style and uncompromising stance send a clear signal to his brothers in the underground: the era of market inequality has just come to an end.",
         newsPageTitle: "NEWS",
         trendingNewsTitle: "🔥 Trending News",
-        voteWait: "⏳ Wait"
+        voteWait: "⏳ Wait",
+        newsAddTitle: "➕ Add new message",
+        newsLangLabel: "Post language",
+        newsTitleLabel: "Title",
+        newsTitlePlaceholder: "Enter title...",
+        newsDescLabel: "Description / Content",
+        newsDescPlaceholder: "Enter message content...",
+        newsImgLabel: "Image",
+        newsAddImgBtn: "Choose from gallery",
+        newsOverlayLabel: "Image text (Overlay Text)",
+        newsOverlayPlaceholder: 'e.g. "Beft vs Hypergamy" ❤️😭',
+        newsBreakingCheck: "🚨 Publish as Breaking News (moves old Breaking News to archive)",
+        newsPublishBtn: "Publish message"
       }
     };
 
@@ -1929,74 +1959,68 @@ async function saveNewsPost() {
 
   const titleInput = document.getElementById("newsTitleInput")?.value.trim() || "";
   const descInput = document.getElementById("newsDescInput")?.value.trim() || "";
-  const imageInput = document.getElementById("newsImageInput")?.value.trim() || "";
   const overlayInput = document.getElementById("newsOverlayInput")?.value.trim() || "";
   const isBreaking = document.getElementById("newsIsBreakingCheckbox")?.checked || false;
-  const inputLang = document.getElementById("newsInputLangSelect")?.value || "pl";
-
-  if (!titleInput || !descInput) {
-    alert("Wypełnij przynajmniej Tytuł i Treść wiadomości.");
-    return;
-  }
+  const imageFileInput = document.getElementById("newsImageFile");
+  const file = imageFileInput ? imageFileInput.files[0] : null;
 
   const btn = document.getElementById("btnPublishNews");
   if (btn) {
+    btn.innerText = i18n[currentLang].uploading || "Wysyłanie...";
     btn.disabled = true;
-    btn.innerText = "Trwa tłumaczenie i zapisywanie...";
   }
 
   try {
-    const targetLang = inputLang === 'pl' ? 'en' : 'pl';
+    let imageUrl = "NEWS.jpg"; // domyślne zdjęcie w razie braku pliku
+    if (file) {
+      imageUrl = await uploadImage(file);
+    }
 
-    const [transTitle, transDesc, transOverlay] = await Promise.all([
-      translateText(titleInput, inputLang, targetLang),
-      translateText(descInput, inputLang, targetLang),
-      overlayInput ? translateText(overlayInput, inputLang, targetLang) : Promise.resolve("")
-    ]);
-
-    const newsPayload = {
-      title_pl: inputLang === 'pl' ? titleInput : transTitle,
-      title_en: inputLang === 'en' ? titleInput : transTitle,
-      desc_pl: inputLang === 'pl' ? descInput : transDesc,
-      desc_en: inputLang === 'en' ? descInput : transDesc,
-      overlay_pl: inputLang === 'pl' ? overlayInput : transOverlay,
-      overlay_en: inputLang === 'en' ? overlayInput : transOverlay,
-      imageUrl: imageInput || "NEWS.jpg",
-      createdAt: firebase.database.ServerValue.TIMESTAMP,
-      authorUid: currentUser.uid,
+    const newPostData = {
+      title: titleInput,
+      desc: descInput,
+      overlay: overlayInput,
+      imageUrl: imageUrl,
+      author: currentUser.displayName || currentUser.email.split('@')[0], // Użycie nazwy użytkownika
       authorEmail: currentUser.email,
-      authorRole: getUserRole(currentUser)
+      uid: currentUser.uid,
+      timestamp: Date.now()
     };
 
     if (isBreaking) {
-      const currentBreakingSnap = await db.ref('breakingNews').once('value');
-      const oldBreaking = currentBreakingSnap.val();
-
-      if (oldBreaking) {
-        await db.ref('newsPosts').push(oldBreaking);
-      }
-
-      await db.ref('breakingNews').set(newsPayload);
+      await db.ref("breakingNews").set(newPostData);
     } else {
-      await db.ref('newsPosts').push(newsPayload);
+      await db.ref("newsPosts").push(newPostData);
     }
 
-    if (document.getElementById("newsTitleInput")) document.getElementById("newsTitleInput").value = "";
-    if (document.getElementById("newsDescInput")) document.getElementById("newsDescInput").value = "";
-    if (document.getElementById("newsImageInput")) document.getElementById("newsImageInput").value = "";
-    if (document.getElementById("newsOverlayInput")) document.getElementById("newsOverlayInput").value = "";
-    if (document.getElementById("newsIsBreakingCheckbox")) document.getElementById("newsIsBreakingCheckbox").checked = false;
-
-    alert("Pomyślnie opublikowano wiadomość!");
+    // Czyszczenie pól formularza
+    document.getElementById("newsTitleInput").value = "";
+    document.getElementById("newsDescInput").value = "";
+    document.getElementById("newsOverlayInput").value = "";
+    if (imageFileInput) imageFileInput.value = "";
+    document.getElementById("newsImageFileName").innerText = "";
   } catch (err) {
-    alert("Błąd podczas zapisywania: " + err.message);
+    alert("Błąd: " + err.message);
   } finally {
     if (btn) {
+      btn.innerText = i18n[currentLang].newsPublishBtn || "Opublikuj wiadomość";
       btn.disabled = false;
-      btn.innerText = "Opublikuj wiadomość";
     }
   }
 }
+    function canManageNewsPost(post) {
+  if (!currentUser) return false;
+  const isOwner = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isAuthor = (post.uid && post.uid === currentUser.uid) || 
+                   (post.authorEmail && post.authorEmail.toLowerCase() === currentUser.email.toLowerCase());
+  return isOwner || isAuthor;
+}
+
+// Przykład w pętli renderowania:
+if (canManageNewsPost(post)) {
+  // Wyświetl przyciski "Edytuj" oraz "Usuń"
+}
+    
 
 // --- 4. RENDEROWANIE BREAKING NEWS & NEWS POSTS ---
 let breakingNewsCache = null;
@@ -2079,7 +2103,7 @@ function renderNewsPostsUI() {
     card.className = "news-post-card";
     card.innerHTML = `
       <div class="post-header">
-        <span class="post-author">${post.authorEmail || 'Autor'}${roleBadge}</span>
+        <span class="post-author">${post.author || 'Autor'}${roleBadge}</span>
         <span class="post-time">${postDate}</span>
       </div>
       <h3 style="font-size:1.1rem; font-weight:800; color:#fff;">${title || ''}</h3>
@@ -2404,59 +2428,93 @@ function deleteNewsPost(postId) {
     }
     
     
-    function setLanguage(lang) {
-      currentLang = lang;
-      document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
-      document.getElementById("flag-en").classList.toggle("active", lang === "en");
+    // 1. Osobna funkcja pomocnicza
+function updateNewsFormLanguage() {
+  const lang = currentLang;
+  
+  const elAddTitle = document.querySelector("#newsCreateCardContainer h3");
+  if (elAddTitle) elAddTitle.innerText = i18n[lang].newsAddTitle;
 
-      document.getElementById("txt-hero").innerText = i18n[lang].hero;
-      document.getElementById("txt-verified").innerText = i18n[lang].verified;
-      document.getElementById("st-rank").innerText = i18n[lang].stRank;
-      document.getElementById("st-votes").innerText = i18n[lang].stVotes;
-      document.getElementById("txt-poll-title").innerText = i18n[lang].pollTitle;
-      document.getElementById("txt-hof-title").innerText = i18n[lang].hofTitle;
-      document.getElementById("txt-hof-sub").innerText = i18n[lang].hofSub;
-      document.getElementById("txt-poll-badge").innerText = i18n[lang].pollBadge;
-      document.getElementById("txt-tab-rankings").innerText = i18n[lang].tabRankings;
-      document.getElementById("txt-tab-news").innerText = i18n[lang].tabNews;
-      document.getElementById("txt-tab-community").innerText = i18n[lang].tabCommunity;
-      document.getElementById("postInput").placeholder = i18n[lang].writePost;
-      document.getElementById("txt-publish-btn").innerText = i18n[lang].publishBtn;
-      document.getElementById("txt-lock-overlay").innerText = i18n[lang].lockOverlayText;
-      document.getElementById("txt-add-img").innerText = i18n[lang].addImage;
+  const labels = document.querySelectorAll("#newsCreateCardContainer .news-form-label");
+  if (labels[0]) labels[0].innerText = i18n[lang].newsLangLabel;
+  if (labels[1]) labels[1].innerText = i18n[lang].newsTitleLabel;
+  if (labels[2]) labels[2].innerText = i18n[lang].newsDescLabel;
+  if (labels[3]) labels[3].innerText = i18n[lang].newsImgLabel;
+  if (labels[4]) labels[4].innerText = i18n[lang].newsOverlayLabel;
 
-      document.getElementById("txt-news-page-title").innerText = i18n[lang].newsPageTitle;
-      document.getElementById("txt-trending-news-title").innerText = i18n[lang].trendingNewsTitle;
+  const titleInput = document.getElementById("newsTitleInput");
+  if (titleInput) titleInput.placeholder = i18n[lang].newsTitlePlaceholder;
 
-      document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
-      document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
-      document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
-      document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc);
+  const descInput = document.getElementById("newsDescInput");
+  if (descInput) descInput.placeholder = i18n[lang].newsDescPlaceholder;
 
-      document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
-      document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
-      document.getElementById("authEmail").placeholder = i18n[lang].emailPlaceholder;
-      document.getElementById("authPassword").placeholder = i18n[lang].passwordPlaceholder;
-      document.getElementById("txt-login-btn").innerText = i18n[lang].modalLoginBtn;
-      document.getElementById("txt-register-btn").innerText = i18n[lang].modalRegisterBtn;
+  const overlayInput = document.getElementById("newsOverlayInput");
+  if (overlayInput) overlayInput.placeholder = i18n[lang].newsOverlayPlaceholder;
 
-      setupPollUI();
-      renderRankings();
-      renderHallOfFame();
-      updateAuthUI();
-      renderPosts();
-      renderBreakingNewsUI();
-      renderNewsPostsUI();
+  const btnAddImg = document.getElementById("txt-news-add-img");
+  if (btnAddImg) btnAddImg.innerText = i18n[lang].newsAddImgBtn;
 
-      if (activeChadId !== null) {
-        const chad = chadsData.find(c => c.id === activeChadId);
-        if (chad) {
-          updateModalText(chad);
-          updateVoteButtonState(chad.id);
-        }
-      }
+  const btnPublish = document.getElementById("btnPublishNews");
+  if (btnPublish) btnPublish.innerText = i18n[lang].newsPublishBtn;
+}
+
+// 2. Zaktualizowana funkcja setLanguage
+function setLanguage(lang) {
+  currentLang = lang;
+  document.getElementById("flag-pl").classList.toggle("active", lang === "pl");
+  document.getElementById("flag-en").classList.toggle("active", lang === "en");
+
+  document.getElementById("txt-hero").innerText = i18n[lang].hero;
+  document.getElementById("txt-verified").innerText = i18n[lang].verified;
+  document.getElementById("st-rank").innerText = i18n[lang].stRank;
+  document.getElementById("st-votes").innerText = i18n[lang].stVotes;
+  document.getElementById("txt-poll-title").innerText = i18n[lang].pollTitle;
+  document.getElementById("txt-hof-title").innerText = i18n[lang].hofTitle;
+  document.getElementById("txt-hof-sub").innerText = i18n[lang].hofSub;
+  document.getElementById("txt-poll-badge").innerText = i18n[lang].pollBadge;
+  document.getElementById("txt-tab-rankings").innerText = i18n[lang].tabRankings;
+  document.getElementById("txt-tab-news").innerText = i18n[lang].tabNews;
+  document.getElementById("txt-tab-community").innerText = i18n[lang].tabCommunity;
+  document.getElementById("postInput").placeholder = i18n[lang].writePost;
+  document.getElementById("txt-publish-btn").innerText = i18n[lang].publishBtn;
+  document.getElementById("txt-lock-overlay").innerText = i18n[lang].lockOverlayText;
+  document.getElementById("txt-add-img").innerText = i18n[lang].addImage;
+
+  document.getElementById("txt-news-page-title").innerText = i18n[lang].newsPageTitle;
+  document.getElementById("txt-trending-news-title").innerText = i18n[lang].trendingNewsTitle;
+
+  document.querySelectorAll(".txt-breaking-header").forEach(el => el.innerText = i18n[lang].breakingHeader);
+  document.querySelectorAll(".txt-breaking-title").forEach(el => el.innerText = i18n[lang].breakingTitle);
+  document.querySelectorAll(".txt-media-overlay").forEach(el => el.innerText = i18n[lang].mediaOverlay);
+  document.querySelectorAll(".txt-news-desc").forEach(el => el.innerText = i18n[lang].newsDesc);
+
+  document.getElementById("txt-auth-title").innerText = i18n[lang].authTitle;
+  document.getElementById("authUsername").placeholder = i18n[lang].usernamePlaceholder;
+  document.getElementById("authEmail").placeholder = i18n[lang].emailPlaceholder;
+  document.getElementById("authPassword").placeholder = i18n[lang].passwordPlaceholder;
+  document.getElementById("txt-login-btn").innerText = i18n[lang].modalLoginBtn;
+  document.getElementById("txt-register-btn").innerText = i18n[lang].modalRegisterBtn;
+
+  setupPollUI();
+  renderRankings();
+  renderHallOfFame();
+  updateAuthUI();
+  renderPosts();
+  renderBreakingNewsUI();
+  renderNewsPostsUI();
+  
+  // Tłumaczenie formularza dodawania wiadomości
+  updateNewsFormLanguage();
+
+  if (activeChadId !== null) {
+    const chad = chadsData.find(c => c.id === activeChadId);
+    if (chad) {
+      updateModalText(chad);
+      updateVoteButtonState(chad.id);
     }
-
+  }
+}
+    
     function openModal(chad) {
       activeChadId = chad.id;
       const isLocked = chad.locked;
