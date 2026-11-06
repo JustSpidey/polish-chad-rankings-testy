@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Totally Real TikTok (Prank)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { --bg:#000; --fg:#fff; --dim:#8a8a8a; --red:#fe2c55; --cyan:#25f4ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font-family:-apple-system,Segoe UI,Roboto,sans-serif; min-height:100vh; }
+  .banner {
+    background:repeating-linear-gradient(45deg,#ffcc00,#ffcc00 12px,#000 12px,#000 24px);
+    color:#000; font-weight:800; text-align:center; padding:10px;
+    letter-spacing:1px; font-size:13px;
+  }
+  .card { max-width:520px; margin:24px auto; padding:0 16px; }
+  .search {
+    display:flex; gap:8px; margin-bottom:20px;
+  }
+  .search input {
+    flex:1; padding:12px 14px; border-radius:8px; border:1px solid #333;
+    background:#111; color:#fff; font-size:15px; outline:none;
+  }
+  .search input:focus { border-color:var(--cyan); }
+  .search button {
+    padding:12px 18px; border:none; border-radius:8px; cursor:pointer;
+    background:var(--red); color:#fff; font-weight:700; font-size:15px;
+  }
+  .profile { background:#111; border-radius:12px; padding:20px; }
+  .avatar {
+    width:96px; height:96px; border-radius:50%; margin:0 auto 12px;
+    background:linear-gradient(135deg,var(--cyan),var(--red));
+    display:flex; align-items:center; justify-content:center;
+    font-size:40px; font-weight:800; color:#000;
+  }
+  .name { text-align:center; font-size:22px; font-weight:700; }
+  .handle { text-align:center; color:var(--dim); font-size:14px; margin-bottom:16px; }
+  .stats {
+    display:flex; justify-content:space-around; border-top:1px solid #222;
+    padding-top:16px; margin-top:8px;
+  }
+  .stat { text-align:center; }
+  .stat b { display:block; font-size:18px; }
+  .stat span { color:var(--dim); font-size:12px; }
+  .bio {
+    text-align:center; color:#ccc; font-size:14px; margin-top:16px;
+    padding:12px; background:#0a0a0a; border-radius:8px;
+  }
+  .watermark {
+    text-align:center; color:var(--dim); font-size:11px; margin-top:24px;
+    opacity:.6;
+  }
+</style>
+</head>
+<body>
+  <div class="banner">⚠️ FAKE PAGE — PRANK ONLY — NO REAL LOGIN, NO DATA COLLECTED ⚠️</div>
+
+  <div class="card">
+    <div class="search">
+      <input id="who" placeholder="Type a name…" autocomplete="off" />
+      <button id="go">Preview</button>
+    </div>
+
+    <div class="profile" id="profile" hidden>
+      <div class="avatar" id="avatar">?</div>
+      <div class="name" id="pname">—</div>
+      <div class="handle" id="phandle">@—</div>
+      <div class="stats">
+        <div class="stat"><b id="fans">0</b><span>Followers</span></div>
+        <div class="stat"><b id="follow">0</b><span>Following</span></div>
+        <div class="stat"><b id="likes">0</b><span>Likes</span></div>
+      </div>
+      <div class="bio" id="bio">—</div>
+      <div class="watermark">Prank mockup · not affiliated with TikTok · no real account data</div>
+    </div>
+  </div>
+
+<script>
+  const FAKE_BIOS = [
+    "professional snack reviewer 🍿",
+    "my cat runs this account",
+    "chaos, but make it aesthetic",
+    "living rent-free in the algorithm",
+    "here for the drama, staying for the dogs"
+  ];
+
+  const rnd = (n) => Math.floor(Math.random() * n);
+
+  function render(name) {
+    const safe = name.trim().slice(0, 32) || "someone";
+    const handle = safe.toLowerCase().replace(/[^a-z0-9._]/g, "") || "user";
+
+    document.getElementById("avatar").textContent = safe[0].toUpperCase();
+    document.getElementById("pname").textContent = safe;
+    document.getElementById("phandle").textContent = "@" + handle + rnd(999);
+    document.getElementById("fans").textContent   = rnd(500000).toLocaleString();
+    document.getElementById("follow").textContent = rnd(5000).toLocaleString();
+    document.getElementById("likes").textContent  = rnd(9000000).toLocaleString();
+    document.getElementById("bio").textContent    = FAKE_BIOS[rnd(FAKE_BIOS.length)];
+
+    document.getElementById("profile").hidden = false;
+  }
+
+  document.getElementById("go").addEventListener("click", () => {
+    render(document.getElementById("who").value);
+  });
+  document.getElementById("who").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") render(e.target.value);
+  });
+</script>
+</body>
+</html>
