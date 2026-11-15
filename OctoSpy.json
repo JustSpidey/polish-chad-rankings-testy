@@ -5400,6 +5400,20 @@ do
 				notification("No result!")
 			end
 		end)
+cons[#cons+1] = addButton("Copy result").MouseButton1Click:Connect(function()
+	if not selected then
+		return notification("Please, select a remote first!")
+	end
+	if not selected[4] then
+		return notification("No result!")
+	end
+	local clip = getfenv().toclipboard or getfenv().setclipboard
+	if not clip then
+		return notification("Your executor doesn't support clipboard functions", "Error")
+	end
+	clip("local packedResult = " .. tostr(selected[4]))
+	notification("Result copied!")
+end)
 		cons[#cons+1] = addButton("Ignore remote").MouseButton1Click:Connect(function()
 			if not selected then
 				return notification("Please, select a remote first!")
